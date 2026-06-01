@@ -1,0 +1,23 @@
+# Never include in Docker image
+credentials/
+.venv/
+
+# Runtime data — regenerated inside the container
+workspaces/
+inputs/
+outputs/
+registry.csv
+
+# Git and cache
+.git/
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.env
+*.log
+
+# Dev files
+docs/
+verify_shared.py
+Claude.md
