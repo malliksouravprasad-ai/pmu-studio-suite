@@ -11,6 +11,7 @@ for _p in [_PMU_ROOT, _APP_DIR]:
 import io
 import zipfile
 import streamlit as st
+from shared.theme import page_header, sidebar_brand
 from engine import (
     init_state, reset_state, get_workspace, get_job, set_job,
     has_data, get_raw_df, has_kpis, has_charts, has_tables,
@@ -30,9 +31,7 @@ job = get_job()
 dj  = job.dashboard_job
 
 with st.sidebar:
-    st.markdown("## 🖥️ Dashboard Studio")
-    st.caption("APP-004 · OSEPA PMU Tool Suite")
-    st.markdown("---")
+    sidebar_brand("Dashboard Studio", "APP-004")
     if ws:
         st.success(f"📁 **{ws['name']}**")
     else:
@@ -42,9 +41,7 @@ with st.sidebar:
         reset_state(); st.rerun()
     render_integration_sidebar()
 
-st.markdown("# 📥 Generate")
-st.caption("Step 6 of 6 — Download dashboard Excel workbook")
-st.markdown("---")
+page_header("Generate", subtitle="Build and download your analysis output", icon="📦", step=6, total_steps=6)
 
 if not has_data():
     st.warning("Please upload a file first."); st.stop()

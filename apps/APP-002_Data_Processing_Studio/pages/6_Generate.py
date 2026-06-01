@@ -9,6 +9,7 @@ for _p in [_PMU_ROOT, _APP_DIR]:
         sys.path.insert(0, _p)
 
 import streamlit as st
+from shared.theme import page_header, sidebar_brand
 from engine import (
     init_state, reset_state, get_workspace, get_job, set_job,
     has_data, get_raw_df, get_mapped_df, get_working_df,
@@ -34,9 +35,7 @@ ws  = get_workspace()
 job = get_job()
 
 with st.sidebar:
-    st.markdown("## ⚙️ Data Processing Studio")
-    st.caption("APP-002 · OSEPA PMU Tool Suite")
-    st.markdown("---")
+    sidebar_brand("Data Processing Studio", "APP-002")
     if ws:
         st.success(f"📁 **{ws['name']}**")
     else:
@@ -50,9 +49,7 @@ with st.sidebar:
     render_autosave_controls(ws, "APP-002", job, key_prefix="dps")
     render_integration_sidebar()
 
-st.markdown("# 📥 Generate")
-st.caption("Step 6 of 6 — Apply pipeline, save configuration, download outputs")
-st.markdown("---")
+page_header("Generate", subtitle="Build and download your analysis output", icon="📦", step=6, total_steps=6)
 
 if not has_data():
     st.warning("Please upload a file first (Step 1 — Upload).")

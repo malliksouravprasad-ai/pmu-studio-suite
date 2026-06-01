@@ -9,6 +9,7 @@ for _p in [_PMU_ROOT, _APP_DIR]:
         sys.path.insert(0, _p)
 
 import streamlit as st
+from shared.theme import page_header, sidebar_brand
 from engine import init_state, get_workspace, set_workspace, reset_state
 from shared import create_workspace, list_workspaces, load_workspace, delete_workspace, list_all_configs
 
@@ -16,9 +17,7 @@ st.set_page_config(page_title="Workspace — Analytics Studio", page_icon="📁"
 init_state()
 
 with st.sidebar:
-    st.markdown("## 📊 Analytics Studio")
-    st.caption("APP-003 · OSEPA PMU Tool Suite")
-    st.markdown("---")
+    sidebar_brand("Analytics Studio", "APP-003")
     ws = get_workspace()
     if ws:
         st.success(f"📁 **{ws['name']}**")
@@ -27,9 +26,7 @@ with st.sidebar:
     if st.button("🗑 Reset Studio", use_container_width=True):
         reset_state(); st.rerun()
 
-st.markdown("# 📁 Workspace")
-st.caption("Step 0 — Select or create a project workspace")
-st.markdown("---")
+page_header("Workspace", subtitle="Select or create a project workspace", icon="📁")
 
 _col_tag, _col_clr = st.columns([3, 1])
 _user_tag = _col_tag.text_input("Your Name / User Tag",

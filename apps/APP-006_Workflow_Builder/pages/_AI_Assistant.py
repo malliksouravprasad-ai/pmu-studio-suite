@@ -7,6 +7,7 @@ for _p in [_PMU_ROOT, _APP_DIR]:
         sys.path.insert(0, _p)
 
 import streamlit as st
+from shared.theme import page_header, sidebar_brand
 from engine import init_state, get_workspace, get_job
 from shared.ai_assistant import render_ai_assistant
 
@@ -14,8 +15,7 @@ st.set_page_config(page_title="AI Assistant — Workflow Builder", page_icon="�
 init_state()
 
 with st.sidebar:
-    st.markdown("## 🔄 Workflow Builder")
-    st.caption("APP-006 · OSEPA PMU Tool Suite")
+    sidebar_brand("Workflow Builder", "APP-006")
     ws = get_workspace()
     if ws:
         st.success(f"📁 **{ws['name']}")

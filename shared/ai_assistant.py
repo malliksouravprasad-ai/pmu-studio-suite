@@ -235,25 +235,24 @@ def _render_password_gate() -> bool:
         return True
 
     st.markdown("""
-    <div style="max-width:420px; margin:80px auto; text-align:center;">
-        <div style="font-size:48px; margin-bottom:8px;">🤖</div>
-        <h2 style="margin:0; font-weight:700; color:#1a1a2e;">PMU AI Assistant</h2>
-        <p style="color:#666; margin-top:8px; margin-bottom:32px;">
-            Enter the access password provided by your administrator to use the AI Assistant.
-        </p>
+    <div class="ai-pw-card">
+        <div class="ai-pw-icon">🤖</div>
+        <h2 class="ai-pw-title">PMU AI Assistant</h2>
+        <p class="ai-pw-sub">Enter the access password provided by your administrator to start using the assistant.</p>
     </div>
     """, unsafe_allow_html=True)
 
-    col_l, col_c, col_r = st.columns([1,2,1])
+    col_l, col_c, col_r = st.columns([1, 2, 1])
     with col_c:
         with st.form("ai_pw_form", clear_on_submit=True):
-            pw = st.text_input("Access Password", type="password", placeholder="Enter password")
-            submitted = st.form_submit_button("Access AI Assistant", type="primary", use_container_width=True)
-
+            pw = st.text_input("Access Password", type="password",
+                               placeholder="Team access password")
+            submitted = st.form_submit_button("Unlock AI Assistant",
+                                              type="primary", use_container_width=True)
         if submitted:
             correct = get_ai_password()
             if not correct:
-                st.error("AI Assistant is not configured yet. Ask your administrator to set it up in the Integrations page.")
+                st.error("AI Assistant is not configured. Ask your administrator to set it up via Integrations → AI Assistant.")
             elif pw == correct:
                 st.session_state["ai_auth"] = True
                 st.rerun()
@@ -266,65 +265,96 @@ def _render_password_gate() -> bool:
 
 _CSS = """
 <style>
-/* Chat container */
+/* Chat bubbles */
 [data-testid="stChatMessage"] {
-    border-radius: 12px;
-    padding: 12px 16px;
-    margin-bottom: 4px;
-    border: none;
+    border-radius: 12px !important;
+    padding: 14px 18px !important;
+    margin-bottom: 6px !important;
+    border: 1px solid #E2E8F0 !important;
+    background: #FFFFFF !important;
+    box-shadow: 0 1px 3px rgba(15,23,42,0.06) !important;
 }
-/* User messages */
-[data-testid="stChatMessage"][data-testid*="user"] {
-    background: #f0f4ff;
-}
-/* Suggestion chips */
-.suggest-chip {
-    display: inline-block;
-    background: #f8f9fa;
-    border: 1px solid #e0e4ef;
-    border-radius: 20px;
-    padding: 6px 14px;
-    margin: 4px;
-    font-size: 13px;
-    cursor: pointer;
-    color: #2c3e7a;
-    font-weight: 500;
-    transition: all 0.15s;
-}
-.suggest-chip:hover {
-    background: #eef1ff;
-    border-color: #4a6cf7;
-}
-/* Header */
+
+/* AI header banner */
 .ai-header {
-    background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+    background: linear-gradient(135deg, #0F172A 0%, #1A2744 50%, #0C2340 100%);
     border-radius: 16px;
-    padding: 28px 32px;
+    padding: 28px 36px;
     color: white;
     margin-bottom: 24px;
+    position: relative;
+    overflow: hidden;
+    box-shadow: 0 8px 24px rgba(15,23,42,0.25);
 }
-.ai-header h1 { margin: 0; font-size: 28px; font-weight: 700; }
-.ai-header p  { margin: 8px 0 0; opacity: 0.75; font-size: 14px; }
+.ai-header::before {
+    content: '';
+    position: absolute;
+    top: -40px; right: -40px;
+    width: 220px; height: 220px;
+    background: radial-gradient(circle, rgba(5,150,105,0.18) 0%, transparent 70%);
+    border-radius: 50%;
+}
+.ai-header h1 {
+    margin: 0; font-size: 1.6rem; font-weight: 800;
+    letter-spacing: -0.02em; position: relative; z-index: 1;
+}
+.ai-header p {
+    margin: 8px 0 0; opacity: 0.72; font-size: 0.875rem;
+    position: relative; z-index: 1;
+}
 .ai-badge {
-    display: inline-block;
-    background: rgba(255,255,255,0.15);
-    border-radius: 20px;
-    padding: 4px 12px;
-    font-size: 12px;
-    font-weight: 600;
-    letter-spacing: 0.5px;
-    margin-top: 12px;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background: rgba(5,150,105,0.2);
+    border: 1px solid rgba(5,150,105,0.35);
+    color: #6EE7B7;
+    border-radius: 999px;
+    padding: 4px 14px;
+    font-size: 0.72rem;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    margin-top: 14px;
+    position: relative; z-index: 1;
 }
+
 /* Tool call card */
 .tool-card {
-    background: #f0fdf4;
-    border: 1px solid #bbf7d0;
-    border-left: 4px solid #22c55e;
+    background: #F0FDF9;
+    border: 1px solid #A7F3D0;
+    border-left: 4px solid #059669;
     border-radius: 8px;
-    padding: 10px 14px;
+    padding: 10px 16px;
     margin: 8px 0;
-    font-size: 13px;
-    color: #166534;
+    font-size: 0.82rem;
+    color: #064E3B;
+    font-weight: 500;
+}
+
+/* Password gate card */
+.ai-pw-card {
+    background: #FFFFFF;
+    border: 1px solid #E2E8F0;
+    border-radius: 16px;
+    padding: 40px 48px;
+    max-width: 440px;
+    margin: 64px auto;
+    text-align: center;
+    box-shadow: 0 8px 24px rgba(15,23,42,0.10);
+}
+.ai-pw-icon  { font-size: 3rem; margin-bottom: 8px; }
+.ai-pw-title { font-size: 1.4rem; font-weight: 800; color: #0F172A; margin: 0 0 8px; }
+.ai-pw-sub   { font-size: 0.875rem; color: #64748B; margin: 0 0 28px; line-height: 1.5; }
+
+/* Section label */
+.ai-section-label {
+    font-size: 0.70rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.09em;
+    color: #64748B;
+    margin: 16px 0 8px;
 }
 </style>
 """
@@ -417,7 +447,7 @@ def render_ai_assistant(app_name: str = "PMU Tools", app_context: dict = None):
             ("🔀", "Explain fuzzy matching for district names"),
             ("📄", "How do I create a district-wise split report?"),
         ]
-        st.markdown("#### Suggested questions")
+        st.markdown('<div class="ai-section-label">Suggested questions</div>', unsafe_allow_html=True)
         cols = st.columns(2)
         for i, (icon, text) in enumerate(SUGGESTIONS):
             if cols[i % 2].button(f"{icon}  {text}", use_container_width=True, key=f"sug_{i}"):

@@ -9,6 +9,7 @@ for _p in [_PMU_ROOT, _APP_DIR]:
         sys.path.insert(0, _p)
 
 import streamlit as st
+from shared.theme import page_header, sidebar_brand
 from uuid import uuid4
 from engine import (
     init_state, reset_state, get_workspace, get_job, get_studio_job, set_studio_job,
@@ -22,9 +23,7 @@ ws  = get_workspace()
 job = get_job()
 
 with st.sidebar:
-    st.markdown("## 🏗️ Monitoring Builder")
-    st.caption("APP-001 · OSEPA PMU Tool Suite")
-    st.markdown("---")
+    sidebar_brand("Monitoring Builder", "APP-001")
     if ws:
         st.success(f"📁 **{ws['name']}**")
     else:
@@ -33,9 +32,7 @@ with st.sidebar:
     if st.button("🗑 Reset Builder", use_container_width=True):
         reset_state(); st.rerun()
 
-st.markdown("# ✅ Validation Rules")
-st.caption("Step 3 of 4 — Define rules that will validate collected data in APP-002")
-st.markdown("---")
+page_header("Validation", subtitle="Define data quality rules for collected submissions", icon="✅", step=3, total_steps=5)
 
 if not has_fields():
     st.warning("Define fields first (Step 1 — Schema)."); st.stop()

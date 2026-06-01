@@ -10,6 +10,7 @@ for _p in [_PMU_ROOT, _APP_DIR]:
 
 import io
 import streamlit as st
+from shared.theme import page_header, sidebar_brand
 from engine import (
     init_state, reset_state, get_workspace, get_job, get_studio_job, set_studio_job,
     has_fields, has_sections,
@@ -31,9 +32,7 @@ job = get_job()
 sj  = get_studio_job()
 
 with st.sidebar:
-    st.markdown("## 🏗️ Monitoring Builder")
-    st.caption("APP-001 · OSEPA PMU Tool Suite")
-    st.markdown("---")
+    sidebar_brand("Monitoring Builder", "APP-001")
     if ws:
         st.success(f"📁 **{ws['name']}**")
     else:
@@ -42,9 +41,7 @@ with st.sidebar:
     if st.button("🗑 Reset Builder", use_container_width=True):
         reset_state(); st.rerun()
 
-st.markdown("# 📦 Package Builder")
-st.caption("Generate monitoring framework outputs — Excel template, validation rules, KPI configs, Google Form")
-st.markdown("---")
+page_header("Package", subtitle="Export your monitoring framework as a complete package", icon="📦", step=5, total_steps=5)
 
 if not has_fields():
     st.warning("Define fields first (Step 1 — Schema)."); st.stop()

@@ -14,25 +14,43 @@ def render_integration_sidebar() -> None:
     from .appscript_svc  import appscript_available
 
     st.markdown("---")
-    st.markdown("**Integrations**")
-    st.caption("✅ Google" if credentials_available() else "🔴 Google — not configured")
+    st.markdown("""
+    <div style="font-size:0.70rem;font-weight:700;text-transform:uppercase;
+                letter-spacing:0.08em;color:#475569;margin-bottom:6px;">
+        Integrations
+    </div>""", unsafe_allow_html=True)
+
+    def _dot(ok: bool, label: str):
+        color = "#059669" if ok else "#94A3B8"
+        icon  = "●" if ok else "○"
+        st.markdown(
+            f'<div style="font-size:0.75rem;color:#CBD5E1;margin:2px 0;">'
+            f'<span style="color:{color};font-size:0.6rem;">{icon}</span>&nbsp;{label}</div>',
+            unsafe_allow_html=True,
+        )
+
+    _dot(credentials_available(), "Google Workspace")
 
     if bq_available():
-        info  = bq_connection_info()
-        label = f"✅ BigQuery ({info.get('project', '')})" if info["connected"] \
-                else f"⚠️ BigQuery — {str(info.get('error', ''))[:28]}"
-        st.caption(label)
+        info = bq_connection_info()
+        _dot(info["connected"], f"BigQuery ({info.get('project','—')[:12]})" if info["connected"] else "BigQuery — error")
     else:
-        st.caption("🔴 BigQuery — not configured")
+        _dot(False, "BigQuery")
 
-    st.caption("✅ Apps Script" if appscript_available() else "🔴 Apps Script — not configured")
+    _dot(appscript_available(), "Apps Script")
 
 
 # ── Full integrations setup page ──────────────────────────────────────────────
 
 def render_integrations_page() -> None:
-    st.markdown("# ⚙️ Integrations Setup")
-    st.caption("Configure all integrations from here — no coding or server access needed.")
+    try:
+        from .theme import page_header
+        page_header("Integrations Setup",
+                    subtitle="Connect Google Workspace, BigQuery, and Apps Script — no coding required",
+                    icon="🔗")
+    except Exception:
+        st.markdown("# ⚙️ Integrations Setup")
+        st.caption("Configure all integrations from here — no coding or server access needed.")
 
     tab_google, tab_bq, tab_appscript, tab_ai, tab_status = st.tabs([
         "🔑 Google Workspace",

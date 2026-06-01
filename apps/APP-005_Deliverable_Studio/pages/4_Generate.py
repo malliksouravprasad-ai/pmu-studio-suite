@@ -11,6 +11,7 @@ for _p in [_PMU_ROOT, _APP_DIR]:
 import io
 import zipfile
 import streamlit as st
+from shared.theme import page_header, sidebar_brand
 from engine import (
     init_state, reset_state, get_workspace, get_job, set_job, has_data, get_raw_df, has_sections,
     generate_all, compute_section_data,
@@ -31,9 +32,7 @@ job = get_job()
 rc  = job.report_config
 
 with st.sidebar:
-    st.markdown("## 📄 Deliverable Studio")
-    st.caption("APP-005 · OSEPA PMU Tool Suite")
-    st.markdown("---")
+    sidebar_brand("Deliverable Studio", "APP-005")
     if ws:
         st.success(f"📁 **{ws['name']}**")
     else:
@@ -43,9 +42,7 @@ with st.sidebar:
         reset_state(); st.rerun()
     render_integration_sidebar()
 
-st.markdown("# 📥 Generate")
-st.caption("Step 4 of 3 — Generate report outputs and save configuration")
-st.markdown("---")
+page_header("Generate", subtitle="Build and download your output package", icon="📦", step=4, total_steps=5)
 
 if not has_data():
     st.warning("Please upload a file first."); st.stop()

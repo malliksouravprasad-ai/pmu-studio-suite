@@ -10,6 +10,7 @@ for _p in [_PMU_ROOT, _APP_DIR]:
 
 import pandas as pd
 import streamlit as st
+from shared.theme import page_header, sidebar_brand
 from engine import (
     init_state, reset_state, get_workspace, get_job, set_job, has_data, get_raw_df,
     SectionDef, SECTION_TYPES, AGG_FUNCS,
@@ -25,9 +26,7 @@ job = get_job()
 rc  = job.report_config
 
 with st.sidebar:
-    st.markdown("## 📄 Deliverable Studio")
-    st.caption("APP-005 · OSEPA PMU Tool Suite")
-    st.markdown("---")
+    sidebar_brand("Deliverable Studio", "APP-005")
     if ws:
         st.success(f"📁 **{ws['name']}**")
     else:
@@ -36,9 +35,7 @@ with st.sidebar:
     if st.button("🗑 Reset Studio", use_container_width=True):
         reset_state(); st.rerun()
 
-st.markdown("# 📑 Sections")
-st.caption("Step 3 of 3 — Define what goes in each section of your report")
-st.markdown("---")
+page_header("Sections", subtitle="Build and arrange report sections", icon="📑", step=3, total_steps=4)
 
 if not has_data():
     st.warning("Please upload a file first."); st.stop()

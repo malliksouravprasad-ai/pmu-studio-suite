@@ -161,3 +161,16 @@ from .integrations_ui import (
     render_appscript_section,
     render_integrations_page,
 )
+
+# ── Enterprise Theme ───────────────────────────────────────────────────────────
+from .theme import (
+    apply_theme,
+    page_header,
+    sidebar_brand,
+    kpi_card,
+    kpi_row,
+    section_header,
+    badge,
+    empty_state,
+    step_progress,
+)

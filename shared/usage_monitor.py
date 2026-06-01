@@ -119,38 +119,56 @@ def render_usage_dashboard() -> None:
     """Full usage dashboard page."""
     import streamlit as st
 
-    st.markdown("# 📊 Usage & Billing Monitor")
-    st.caption("Tracks Cloud Run requests against the Google free tier. Refreshes on each page visit.")
+    try:
+        from .theme import page_header, kpi_row
+        page_header("Usage & Billing Monitor",
+                    subtitle="Cloud Run request tracking against Google free tier · refreshes on each page visit",
+                    icon="📊")
+    except Exception:
+        st.markdown("# 📊 Usage & Billing Monitor")
 
     usage = get_current_usage()
     level = usage["alert_level"]
 
-    # Status cards
-    col1, col2, col3 = st.columns(3)
+    status_map = {"billing": "red", "warning": "amber", "info": "blue", "ok": "green"}
+    kpi_status = status_map.get(level, "green")
 
-    with col1:
-        color = "🔴" if level == "billing" else ("🟡" if level == "warning" else "🟢")
-        st.metric(
-            "Requests This Month",
-            f"{usage['requests']:,}",
-            delta=f"{usage['requests_pct']}% of free tier",
-            delta_color="inverse" if level in ("billing","warning") else "normal",
-        )
-        st.caption(f"{color} Free tier: {usage['requests_limit']:,} requests/month")
-
-    with col2:
-        st.metric(
-            "Remaining Free Requests",
-            f"{usage['requests_remaining']:,}" if usage["in_free_tier"] else "0 (billing active)",
-        )
-        st.caption("Resets on the 1st of each month")
-
-    with col3:
-        st.metric(
-            "Estimated Extra Charge",
-            f"${usage['est_cost_usd']:.4f} USD" if not usage["in_free_tier"] else "$0.00 USD",
-        )
-        st.caption("Only applies beyond the free tier")
+    try:
+        from .theme import kpi_row
+        kpi_row([
+            {
+                "label": "Requests This Month",
+                "value": f"{usage['requests']:,}",
+                "delta": f"{usage['requests_pct']}% of {usage['requests_limit']:,} free",
+                "status": kpi_status,
+                "icon": "📨",
+            },
+            {
+                "label": "Remaining Free Requests",
+                "value": f"{usage['requests_remaining']:,}" if usage["in_free_tier"] else "0",
+                "delta": "Resets 1st of each month",
+                "status": "slate",
+                "icon": "🎯",
+            },
+            {
+                "label": "Estimated Extra Charge",
+                "value": f"${usage['est_cost_usd']:.4f}" if not usage["in_free_tier"] else "$0.00",
+                "delta": "USD · beyond free tier only",
+                "status": "red" if not usage["in_free_tier"] else "green",
+                "icon": "💳",
+            },
+        ])
+    except Exception:
+        col1, col2, col3 = st.columns(3)
+        with col1:
+            st.metric("Requests This Month", f"{usage['requests']:,}",
+                      delta=f"{usage['requests_pct']}% of free tier")
+        with col2:
+            st.metric("Remaining Free",
+                      f"{usage['requests_remaining']:,}" if usage["in_free_tier"] else "0")
+        with col3:
+            st.metric("Estimated Charge",
+                      f"${usage['est_cost_usd']:.4f} USD" if not usage["in_free_tier"] else "$0.00 USD")
 
     # Progress bar
     st.markdown("---")

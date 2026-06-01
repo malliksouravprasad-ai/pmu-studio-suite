@@ -10,6 +10,7 @@ for _p in [_PMU_ROOT, _APP_DIR]:
 
 import datetime
 import streamlit as st
+from shared.theme import page_header, sidebar_brand
 from engine import (
     init_state, reset_state, get_workspace, get_job, set_job, has_data,
     OUTPUT_FORMATS,
@@ -23,9 +24,7 @@ job = get_job()
 rc  = job.report_config
 
 with st.sidebar:
-    st.markdown("## 📄 Deliverable Studio")
-    st.caption("APP-005 · OSEPA PMU Tool Suite")
-    st.markdown("---")
+    sidebar_brand("Deliverable Studio", "APP-005")
     if ws:
         st.success(f"📁 **{ws['name']}**")
     else:
@@ -35,9 +34,7 @@ with st.sidebar:
     if st.button("🗑 Reset Studio", use_container_width=True):
         reset_state(); st.rerun()
 
-st.markdown("# 📝 Report Details")
-st.caption("Step 2 of 3 — Set report title, metadata, and output formats")
-st.markdown("---")
+page_header("Report Details", subtitle="Set metadata for your report output", icon="📋", step=2, total_steps=4)
 
 with st.form("report_details_form"):
     c1, c2 = st.columns(2)

@@ -9,6 +9,7 @@ for _p in [_PMU_ROOT, _APP_DIR]:
         sys.path.insert(0, _p)
 
 import streamlit as st
+from shared.theme import page_header, sidebar_brand
 from engine import (
     init_state, reset_state, get_workspace, get_job, set_job, has_data,
     DashboardStudioJob,
@@ -22,9 +23,7 @@ ws  = get_workspace()
 job = get_job()
 
 with st.sidebar:
-    st.markdown("## 🖥️ Dashboard Studio")
-    st.caption("APP-004 · OSEPA PMU Tool Suite")
-    st.markdown("---")
+    sidebar_brand("Dashboard Studio", "APP-004")
     if ws:
         st.success(f"📁 **{ws['name']}**")
     else:
@@ -34,9 +33,7 @@ with st.sidebar:
     if st.button("🗑 Reset Studio", use_container_width=True):
         reset_state(); st.rerun()
 
-st.markdown("# 🗂️ Layout Builder")
-st.caption("Step 5 of 6 — Save, load, and manage dashboard layouts")
-st.markdown("---")
+page_header("Layout", subtitle="Design the dashboard layout and export", icon="🎨", step=5, total_steps=6)
 
 if not ws:
     st.warning("A workspace is required to save and manage layouts. Open one on the **Workspace** page.")

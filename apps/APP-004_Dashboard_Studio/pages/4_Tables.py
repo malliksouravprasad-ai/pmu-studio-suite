@@ -10,6 +10,7 @@ for _p in [_PMU_ROOT, _APP_DIR]:
 
 import pandas as pd
 import streamlit as st
+from shared.theme import page_header, sidebar_brand
 from engine import (
     init_state, reset_state, get_workspace, get_job, get_raw_df, has_data,
     TableDef, AGG_FUNCS, add_table, remove_table, build_table,
@@ -22,9 +23,7 @@ ws  = get_workspace()
 job = get_job()
 
 with st.sidebar:
-    st.markdown("## 🖥️ Dashboard Studio")
-    st.caption("APP-004 · OSEPA PMU Tool Suite")
-    st.markdown("---")
+    sidebar_brand("Dashboard Studio", "APP-004")
     if ws:
         st.success(f"📁 **{ws['name']}**")
     else:
@@ -33,9 +32,7 @@ with st.sidebar:
     if st.button("🗑 Reset Studio", use_container_width=True):
         reset_state(); st.rerun()
 
-st.markdown("# 📋 Tables")
-st.caption("Step 4 of 6 — Define summary tables for the dashboard")
-st.markdown("---")
+page_header("Tables", subtitle="Configure tabular views for your dashboard", icon="📋", step=4, total_steps=6)
 
 if not has_data():
     st.warning("Please upload a file first."); st.stop()

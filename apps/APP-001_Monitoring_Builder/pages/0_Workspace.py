@@ -14,25 +14,23 @@ from engine import (
     get_studio_job, set_studio_job, MonitoringStudioJob, ENTITY_TYPES,
 )
 from shared import create_workspace, list_workspaces, load_workspace, delete_workspace, list_configs, load_config
+from shared.theme import page_header, sidebar_brand
 
 st.set_page_config(page_title="Workspace — Monitoring Builder", page_icon="📁", layout="wide")
 init_state()
 
 with st.sidebar:
-    st.markdown("## 🏗️ Monitoring Builder")
-    st.caption("APP-001 · OSEPA PMU Tool Suite")
-    st.markdown("---")
+    sidebar_brand("Monitoring Builder", "APP-001")
     ws = get_workspace()
     if ws:
         st.success(f"📁 **{ws['name']}**")
     else:
         st.warning("No workspace selected")
+    st.markdown("---")
     if st.button("🗑 Reset Builder", use_container_width=True):
         reset_state(); st.rerun()
 
-st.markdown("# 📁 Workspace")
-st.caption("Step 0 — Select workspace and set monitoring framework metadata")
-st.markdown("---")
+page_header("Workspace", "Select or create a project workspace and configure your monitoring framework", "📁")
 
 _col_tag, _col_clr = st.columns([3, 1])
 _user_tag = _col_tag.text_input("Your Name / User Tag",

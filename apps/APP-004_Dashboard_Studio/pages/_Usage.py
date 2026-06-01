@@ -7,6 +7,7 @@ for _p in [_PMU_ROOT, _APP_DIR]:
         sys.path.insert(0, _p)
 
 import streamlit as st
+from shared.theme import page_header, sidebar_brand
 from engine import init_state, get_workspace
 from shared.usage_monitor import render_usage_dashboard
 
@@ -14,8 +15,7 @@ st.set_page_config(page_title="Usage Monitor — Dashboard Studio", page_icon="�
 init_state()
 
 with st.sidebar:
-    st.markdown("## 🖥️ Dashboard Studio")
-    st.caption("APP-004 · OSEPA PMU Tool Suite")
+    sidebar_brand("Dashboard Studio", "APP-004")
     ws = get_workspace()
     if ws:
         st.success(f"📁 **{ws['name']}")

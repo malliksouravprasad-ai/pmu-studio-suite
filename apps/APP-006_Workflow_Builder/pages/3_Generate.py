@@ -9,6 +9,7 @@ for _p in [_PMU_ROOT, _APP_DIR]:
         sys.path.insert(0, _p)
 
 import streamlit as st
+from shared.theme import page_header, sidebar_brand
 from engine import (
     init_state, reset_state, get_workspace, get_job, set_job, get_workflow_job,
     has_stages, has_entities,
@@ -29,9 +30,7 @@ job = get_job()
 wj  = get_workflow_job()
 
 with st.sidebar:
-    st.markdown("## 🔄 Workflow Builder")
-    st.caption("APP-006 · OSEPA PMU Tool Suite")
-    st.markdown("---")
+    sidebar_brand("Workflow Builder", "APP-006")
     if ws:
         st.success(f"📁 **{ws['name']}**")
     else:
@@ -42,9 +41,7 @@ with st.sidebar:
         reset_state(); st.rerun()
     render_integration_sidebar()
 
-st.markdown("# 📥 Generate")
-st.caption("Step 3 of 2 — Download tracker outputs and save workflow definition")
-st.markdown("---")
+page_header("Generate", subtitle="Export workflow tracking report", icon="📦", step=3, total_steps=3)
 
 if not has_entities() or not has_stages():
     st.warning("Please define entities and stages first (Step 1 — Define)."); st.stop()

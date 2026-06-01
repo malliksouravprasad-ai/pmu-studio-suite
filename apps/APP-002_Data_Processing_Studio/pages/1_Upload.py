@@ -10,6 +10,7 @@ for _p in [_PMU_ROOT, _APP_DIR]:
 
 import pandas as pd
 import streamlit as st
+from shared.theme import page_header, sidebar_brand
 from engine import (
     init_state, reset_state, get_workspace, set_raw_df,
     get_job, set_job, ProcessingJob, has_data,
@@ -28,9 +29,7 @@ ws  = get_workspace()
 job = get_job()
 
 with st.sidebar:
-    st.markdown("## ⚙️ Data Processing Studio")
-    st.caption("APP-002 · OSEPA PMU Tool Suite")
-    st.markdown("---")
+    sidebar_brand("Data Processing Studio", "APP-002")
     if ws:
         st.success(f"📁 **{ws['name']}**")
         st.caption(f"Project: {ws['project_code']}")
@@ -53,9 +52,7 @@ with st.sidebar:
         reset_state(); st.rerun()
     render_integration_sidebar()
 
-st.markdown("# 📤 Upload")
-st.caption("Step 1 of 6 — Load your dataset (file, Google Sheet, or workspace data source)")
-st.markdown("---")
+page_header("Upload", subtitle="Load your dataset — CSV, Excel, Google Sheet, or BigQuery", icon="📤", step=1, total_steps=6)
 
 # ── Saved config loader ───────────────────────────────────────────────────────
 if ws:

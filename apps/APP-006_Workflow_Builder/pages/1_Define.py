@@ -9,6 +9,7 @@ for _p in [_PMU_ROOT, _APP_DIR]:
         sys.path.insert(0, _p)
 
 import streamlit as st
+from shared.theme import page_header, sidebar_brand
 from engine import (
     init_state, reset_state, get_workspace, get_job, set_job, get_workflow_job,
     add_stage, remove_stage, move_stage_up, move_stage_down,
@@ -25,9 +26,7 @@ job = get_job()
 wj  = job.workflow_job
 
 with st.sidebar:
-    st.markdown("## 🔄 Workflow Builder")
-    st.caption("APP-006 · OSEPA PMU Tool Suite")
-    st.markdown("---")
+    sidebar_brand("Workflow Builder", "APP-006")
     if ws:
         st.success(f"📁 **{ws['name']}**")
     else:
@@ -36,9 +35,7 @@ with st.sidebar:
     if st.button("🗑 Reset Builder", use_container_width=True):
         reset_state(); st.rerun()
 
-st.markdown("# 📋 Define Workflow")
-st.caption("Step 1 of 2 — Name the workflow, add entities and stages")
-st.markdown("---")
+page_header("1 Define", icon="📄")
 
 # ── Workflow Templates ─────────────────────────────────────────────────────────
 WORKFLOW_TEMPLATES = {

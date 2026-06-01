@@ -7,6 +7,7 @@ for _p in [_PMU_ROOT, _APP_DIR]:
         sys.path.insert(0, _p)
 
 import streamlit as st
+from shared.theme import page_header, sidebar_brand
 from engine import init_state
 from shared import render_integrations_page
 
@@ -14,7 +15,6 @@ st.set_page_config(page_title="Integrations — Monitoring Builder", page_icon="
 init_state()
 
 with st.sidebar:
-    st.markdown("## 📋 Monitoring Builder")
-    st.caption("APP-001 · OSEPA PMU Tool Suite")
+    sidebar_brand("Monitoring Builder", "APP-001")
 
 render_integrations_page()

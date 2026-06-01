@@ -11,6 +11,7 @@ for _p in [_PMU_ROOT, _APP_DIR]:
 import io
 import zipfile
 import streamlit as st
+from shared.theme import page_header, sidebar_brand
 from shared import render_integration_sidebar, render_bq_push_section, render_appscript_section
 from engine import (
     init_state, reset_state, get_workspace, get_job, set_job,
@@ -35,9 +36,7 @@ ws  = get_workspace()
 job = get_job()
 
 with st.sidebar:
-    st.markdown("## 📊 Analytics Studio")
-    st.caption("APP-003 · OSEPA PMU Tool Suite")
-    st.markdown("---")
+    sidebar_brand("Analytics Studio", "APP-003")
     if ws:
         st.success(f"📁 **{ws['name']}**")
     else:
@@ -48,9 +47,7 @@ with st.sidebar:
         reset_state(); st.rerun()
     render_integration_sidebar()
 
-st.markdown("# 📥 Generate")
-st.caption("Step 6 of 6 — Run everything, save config, download outputs")
-st.markdown("---")
+page_header("Generate", subtitle="Build and download your analysis output", icon="📦", step=6, total_steps=6)
 
 if not has_data():
     st.warning("Please upload a file first (Step 1 — Upload).")

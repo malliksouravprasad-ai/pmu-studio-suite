@@ -11,6 +11,11 @@ def init_state():
     for k, v in {_WS: None, _JOB: MonitoringStudioJob()}.items():
         if k not in st.session_state:
             st.session_state[k] = v
+    try:
+        from shared.theme import apply_theme
+        apply_theme()
+    except Exception:
+        pass
 
 
 def reset_state():

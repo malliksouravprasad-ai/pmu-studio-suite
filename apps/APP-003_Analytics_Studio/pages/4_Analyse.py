@@ -10,6 +10,7 @@ for _p in [_PMU_ROOT, _APP_DIR]:
 
 import pandas as pd
 import streamlit as st
+from shared.theme import page_header, sidebar_brand
 from engine import (
     init_state, reset_state, get_workspace, get_job,
     has_data, get_raw_df,
@@ -26,9 +27,7 @@ ws  = get_workspace()
 job = get_job()
 
 with st.sidebar:
-    st.markdown("## 📊 Analytics Studio")
-    st.caption("APP-003 · OSEPA PMU Tool Suite")
-    st.markdown("---")
+    sidebar_brand("Analytics Studio", "APP-003")
     if ws:
         st.success(f"📁 **{ws['name']}**")
     else:
@@ -39,9 +38,7 @@ with st.sidebar:
     if st.button("🗑 Reset Studio", use_container_width=True):
         reset_state(); st.rerun()
 
-st.markdown("# 📈 Analyse")
-st.caption("Step 4 of 6 — Rank entities and measure variance against targets")
-st.markdown("---")
+page_header("Analyse", subtitle="Rank, compare, and score entities", icon="🔬", step=4, total_steps=6)
 
 if not has_data():
     st.warning("Please upload a file first (Step 1 — Upload).")

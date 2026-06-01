@@ -10,6 +10,7 @@ for _p in [_PMU_ROOT, _APP_DIR]:
 
 import pandas as pd
 import streamlit as st
+from shared.theme import page_header, sidebar_brand
 from engine import (
     init_state, reset_state, get_workspace, get_job,
     has_data, get_raw_df, get_mapped_df,
@@ -24,9 +25,7 @@ ws  = get_workspace()
 job = get_job()
 
 with st.sidebar:
-    st.markdown("## ⚙️ Data Processing Studio")
-    st.caption("APP-002 · OSEPA PMU Tool Suite")
-    st.markdown("---")
+    sidebar_brand("Data Processing Studio", "APP-002")
     if ws:
         st.success(f"📁 **{ws['name']}**")
     else:
@@ -34,9 +33,7 @@ with st.sidebar:
     if st.button("🗑 Reset Studio", use_container_width=True):
         reset_state(); st.rerun()
 
-st.markdown("# 🔀 Pipeline Overview")
-st.caption("Complete view of your processing pipeline — all steps across all stages")
-st.markdown("---")
+page_header("Pipeline Overview", subtitle="End-to-end view of the processing pipeline", icon="🔭", step=7, total_steps=7)
 
 df = get_raw_df()
 steps = [s for s in job.transform_job.steps if s.enabled]

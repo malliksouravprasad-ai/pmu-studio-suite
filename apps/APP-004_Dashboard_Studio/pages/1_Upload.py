@@ -10,6 +10,7 @@ for _p in [_PMU_ROOT, _APP_DIR]:
 
 import pandas as pd
 import streamlit as st
+from shared.theme import page_header, sidebar_brand
 from engine import init_state, reset_state, get_workspace, get_job, set_job, set_raw_df, get_raw_df, has_data, DashboardStudioJob
 from shared import (
     list_configs, load_config, credentials_available, read_sheet,
@@ -23,9 +24,7 @@ ws  = get_workspace()
 job = get_job()
 
 with st.sidebar:
-    st.markdown("## 🖥️ Dashboard Studio")
-    st.caption("APP-004 · OSEPA PMU Tool Suite")
-    st.markdown("---")
+    sidebar_brand("Dashboard Studio", "APP-004")
     if ws:
         st.success(f"📁 **{ws['name']}**")
     else:
@@ -36,9 +35,7 @@ with st.sidebar:
         reset_state(); st.rerun()
     render_integration_sidebar()
 
-st.markdown("# 📤 Upload")
-st.caption("Step 1 of 6 — Load your dataset")
-st.markdown("---")
+page_header("Upload", subtitle="Load your dataset — CSV, Excel, Google Sheet, or BigQuery", icon="📤", step=1, total_steps=6)
 
 if ws:
     saved = list_configs(ws["path"], "APP-004")
