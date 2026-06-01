@@ -13,6 +13,7 @@ Usage:
     import_package(Path("exports/teacher_training_20260531_143000.pmupack"))
     → restores to workspaces/teacher_training/
 """
+from __future__ import annotations
 import json
 import shutil
 import zipfile

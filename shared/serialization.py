@@ -4,6 +4,7 @@ Serialization Engine — artifact ID generation and data serialization.
 Every output produced by any PMU app must have a unique artifact ID.
 Format: PMU-YYYY-APPCODE-SUBTYPE-NNNNN
 """
+from __future__ import annotations
 import csv
 import json
 import os

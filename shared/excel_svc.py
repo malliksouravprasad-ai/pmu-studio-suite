@@ -12,6 +12,7 @@ PMU Color Palette:
   Alert red          : C00000  (errors, critical values)
   Success green      : 70AD47  (compliant / on-track)
 """
+from __future__ import annotations
 from pathlib import Path
 from typing import Any
 

@@ -7,6 +7,7 @@ Covers all template types used across PMU apps:
 Templates are indexed in PMU_Tools/templates/template_index.json.
 Each app can also have its own local template folder for app-specific forms.
 """
+from __future__ import annotations
 import json
 import shutil
 from datetime import datetime

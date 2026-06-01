@@ -10,6 +10,7 @@ subfolder, organized by app:
 Each file contains the full configuration payload plus metadata so that
 any version can be retrieved and compared.
 """
+from __future__ import annotations
 import json
 import re
 from datetime import datetime

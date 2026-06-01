@@ -10,7 +10,9 @@ Provides:
 All apps should import auth and operations from here instead of implementing
 their own credential flows.
 """
+from __future__ import annotations
 from pathlib import Path
+from typing import Union
 
 _CREDS_PATH = Path(__file__).parent.parent / "credentials" / "credentials.json"
 _TOKEN_PATH = Path(__file__).parent.parent / "credentials" / "token.json"
@@ -146,7 +148,7 @@ def create_spreadsheet(title: str) -> dict:
 # ── Google Drive ──────────────────────────────────────────────────────────────
 
 def upload_to_drive(
-    local_path: str | Path,
+    local_path: Union[str, Path],
     folder_id: str = None,
     filename: str = None,
 ) -> dict:
