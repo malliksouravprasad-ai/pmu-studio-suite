@@ -8,6 +8,8 @@ for _p in [_PMU_ROOT, _APP_DIR]:
     if _p not in sys.path:
         sys.path.insert(0, _p)
 
+import io
+import zipfile
 import streamlit as st
 from engine import (
     init_state, reset_state, get_workspace, get_job, set_job,
@@ -105,6 +107,53 @@ if st.button("📦 Generate All Outputs", use_container_width=True):
         file_name=os.path.basename(data_path),
         mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
         use_container_width=True)
+
+# ── Segregated Excel by Column ───────────────────────────────────────────────
+st.markdown("---")
+st.markdown("### Segregated Excel by Column")
+st.caption(
+    "Generate one Excel file per unique value in a column "
+    "(e.g. one file per District). All files download as a ZIP."
+)
+
+_seg_col = st.selectbox("Split by column", df.columns.tolist(), key="dsh_seg_col")
+_seg_vals = sorted(df[_seg_col].dropna().unique().tolist()) if _seg_col else []
+st.caption(f"**{len(_seg_vals)}** unique value(s) in **{_seg_col}**")
+
+if _seg_vals and st.button(
+    f"📂 Generate {len(_seg_vals)} Segregated File(s)", use_container_width=True, key="dsh_seg_btn"
+):
+    import pandas as _pd
+    _zip = io.BytesIO()
+    _errs = []
+    with st.spinner(f"Building {len(_seg_vals)} file(s)…"):
+        with zipfile.ZipFile(_zip, "w", zipfile.ZIP_DEFLATED) as _zf:
+            for _v in _seg_vals:
+                try:
+                    _sub = df[df[_seg_col] == _v].copy()
+                    if _sub.empty:
+                        continue
+                    _out = io.BytesIO()
+                    with _pd.ExcelWriter(_out, engine="openpyxl") as _ew:
+                        _sub.to_excel(_ew, index=False, sheet_name="Data")
+                    _safe = (
+                        str(_v).replace("/", "_").replace("\\", "_").replace(":", "_")
+                    )
+                    _zf.writestr(f"dashboard_{_safe}.xlsx", _out.getvalue())
+                except Exception as _e:
+                    _errs.append(f"{_v}: {_e}")
+    _zip.seek(0)
+    _zfname = f"segregated_{_seg_col}_{artifact_id}.zip"
+    st.download_button(
+        f"⬇ {_zfname}", _zip, file_name=_zfname,
+        mime="application/zip", use_container_width=True, type="primary",
+        key="dsh_seg_dl",
+    )
+    if _errs:
+        with st.expander(f"{len(_errs)} error(s)"):
+            for _e in _errs:
+                st.warning(_e)
+    st.success(f"ZIP ready — {len(_seg_vals) - len(_errs)} file(s) generated.")
 
 # ── Google Sheets + Drive ─────────────────────────────────────────────────────
 st.markdown("---")

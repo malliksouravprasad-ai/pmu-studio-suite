@@ -8,10 +8,13 @@ for _p in [_PMU_ROOT, _APP_DIR]:
     if _p not in sys.path:
         sys.path.insert(0, _p)
 
+import io
+import zipfile
 import streamlit as st
 from engine import (
     init_state, reset_state, get_workspace, get_job, set_job, has_data, get_raw_df, has_sections,
-    generate_all, save_excel_report, save_word_report, save_ppt_report, save_pdf_report,
+    generate_all, compute_section_data,
+    save_excel_report, save_word_report, save_ppt_report, save_pdf_report,
     register_outputs, OUTPUT_FORMATS,
 )
 from shared import (
@@ -114,6 +117,55 @@ for col, fmt in zip(cols, rc.selected_formats):
         with st.spinner(f"Building {ext}…"):
             path, buf = fn(df, rc, ws_path)
         col.download_button(f"⬇ {ext}", buf, file_name=os.path.basename(path), mime=mime, use_container_width=True)
+
+# ── Segregated Reports by Column ─────────────────────────────────────────────
+st.markdown("---")
+st.markdown("### Segregated Reports by Column")
+st.caption(
+    "Generate one formatted Excel report per unique value in a column "
+    "(e.g. one report per District). All reports download as a ZIP."
+)
+
+_seg_col = st.selectbox("Split by column", df.columns.tolist(), key="del_seg_col")
+_seg_vals = sorted(df[_seg_col].dropna().unique().tolist()) if _seg_col else []
+st.caption(f"**{len(_seg_vals)}** unique value(s) in **{_seg_col}**")
+
+if not rc.sections:
+    st.info("Add at least one section (Step 3) before generating segregated reports.")
+elif _seg_vals and st.button(
+    f"📂 Generate {len(_seg_vals)} Segregated Report(s)", use_container_width=True, key="del_seg_btn"
+):
+    _zip = io.BytesIO()
+    _errs = []
+    with st.spinner(f"Building {len(_seg_vals)} report(s)…"):
+        with zipfile.ZipFile(_zip, "w", zipfile.ZIP_DEFLATED) as _zf:
+            for _v in _seg_vals:
+                try:
+                    _sub = df[df[_seg_col] == _v].copy()
+                    if _sub.empty:
+                        continue
+                    _sec_data = compute_section_data(_sub, rc)
+                    _safe = (
+                        str(_v).replace("/", "_").replace("\\", "_").replace(":", "_")
+                    )
+                    _fname, _buf = save_excel_report(
+                        _sec_data, rc, f"{artifact_id}_{_safe}"
+                    )
+                    _zf.writestr(f"report_{_safe}.xlsx", _buf.getvalue())
+                except Exception as _e:
+                    _errs.append(f"{_v}: {_e}")
+    _zip.seek(0)
+    _zfname = f"segregated_reports_{_seg_col}_{artifact_id}.zip"
+    st.download_button(
+        f"⬇ {_zfname}", _zip, file_name=_zfname,
+        mime="application/zip", use_container_width=True, type="primary",
+        key="del_seg_dl",
+    )
+    if _errs:
+        with st.expander(f"{len(_errs)} error(s)"):
+            for _e in _errs:
+                st.warning(_e)
+    st.success(f"ZIP ready — {len(_seg_vals) - len(_errs)} report(s) generated.")
 
 # ── Google Drive upload ────────────────────────────────────────────────────────
 st.markdown("---")
