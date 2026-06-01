@@ -33,17 +33,31 @@ WORKSPACE_FOLDERS = [
 
 # ── Create / Delete ───────────────────────────────────────────────────────────
 
-def create_workspace(name: str, project_code: str, description: str = "") -> dict:
+def create_workspace(
+    name: str,
+    project_code: str,
+    user_tag: str = "",
+    description: str = "",
+) -> dict:
     """
     Create a new project workspace on disk.
+
+    user_tag: identifies the creator (e.g. 'Malli', 'District_A').
+    When provided, the workspace slug includes the tag so two users can create
+    workspaces with the same name without collision.
+
     Returns the workspace metadata dict (including 'path').
-    Raises FileExistsError if a workspace with the same name already exists.
+    Raises FileExistsError if this user already has a workspace with this name.
     """
     _WORKSPACES_ROOT.mkdir(parents=True, exist_ok=True)
-    slug = slugify(name)
+    _tag = slugify(user_tag) if user_tag.strip() else ""
+    slug = slugify(f"{name}_{_tag}") if _tag else slugify(name)
     ws_path = _WORKSPACES_ROOT / slug
     if ws_path.exists():
-        raise FileExistsError(f"Workspace '{name}' already exists.")
+        raise FileExistsError(
+            f"Workspace '{name}' already exists"
+            + (f" for user '{user_tag}'." if user_tag else ".")
+        )
 
     ws_path.mkdir(parents=True)
     for folder in WORKSPACE_FOLDERS:
@@ -53,6 +67,7 @@ def create_workspace(name: str, project_code: str, description: str = "") -> dic
         "name": name,
         "slug": slug,
         "project_code": project_code.upper().strip(),
+        "user_tag": user_tag.strip(),
         "description": description,
         "created": datetime.now().strftime("%Y-%m-%d %H:%M"),
         "modified": datetime.now().strftime("%Y-%m-%d %H:%M"),

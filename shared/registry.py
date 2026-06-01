@@ -3,13 +3,21 @@ Registry Manager — system-wide tracking log for all generated outputs.
 
 Every app must call register() after producing an output.
 The registry is a flat CSV file at PMU_Tools/registry.csv.
+All writes are protected by a file lock so concurrent users cannot corrupt it.
 """
 import csv
 import os
 from datetime import datetime
 from pathlib import Path
 
+try:
+    import filelock as _filelock
+    _LOCK_AVAILABLE = True
+except ImportError:
+    _LOCK_AVAILABLE = False
+
 _REGISTRY_PATH = Path(__file__).parent.parent / "registry.csv"
+_LOCK_PATH     = _REGISTRY_PATH.with_suffix(".csv.lock")
 
 FIELDS = [
     "app_id", "artifact_id", "date_generated",
@@ -45,8 +53,9 @@ def register(
         "config_name": config_name,
         "config_version": str(config_version),
     }
-    with open(_REGISTRY_PATH, "a", newline="", encoding="utf-8") as f:
-        csv.DictWriter(f, fieldnames=FIELDS).writerow(row)
+    with _lock():
+        with open(_REGISTRY_PATH, "a", newline="", encoding="utf-8") as f:
+            csv.DictWriter(f, fieldnames=FIELDS).writerow(row)
     return row
 
 
@@ -120,14 +129,25 @@ def summary() -> dict:
 
 # ── Internals ─────────────────────────────────────────────────────────────────
 
+def _lock():
+    """Return a context manager that serialises registry writes across processes."""
+    if _LOCK_AVAILABLE:
+        return _filelock.FileLock(str(_LOCK_PATH), timeout=15)
+    import contextlib
+    return contextlib.nullcontext()
+
+
 def _ensure():
     if not _REGISTRY_PATH.exists():
-        with open(_REGISTRY_PATH, "w", newline="", encoding="utf-8") as f:
-            csv.DictWriter(f, fieldnames=FIELDS).writeheader()
+        with _lock():
+            if not _REGISTRY_PATH.exists():  # double-check inside lock
+                with open(_REGISTRY_PATH, "w", newline="", encoding="utf-8") as f:
+                    csv.DictWriter(f, fieldnames=FIELDS).writeheader()
 
 
 def _rewrite(rows: list[dict]):
-    with open(_REGISTRY_PATH, "w", newline="", encoding="utf-8") as f:
-        writer = csv.DictWriter(f, fieldnames=FIELDS)
-        writer.writeheader()
-        writer.writerows(rows)
+    with _lock():
+        with open(_REGISTRY_PATH, "w", newline="", encoding="utf-8") as f:
+            writer = csv.DictWriter(f, fieldnames=FIELDS)
+            writer.writeheader()
+            writer.writerows(rows)

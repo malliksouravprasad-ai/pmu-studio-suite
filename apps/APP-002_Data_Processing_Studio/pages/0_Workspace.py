@@ -27,6 +27,8 @@ with st.sidebar:
     if ws:
         st.success(f"📁 **{ws['name']}**")
         st.caption(f"Project: {ws['project_code']}")
+        if ws.get("user_tag"):
+            st.caption(f"User: {ws['user_tag']}")
     else:
         st.warning("No workspace selected")
     if st.button("🗑 Reset Studio", use_container_width=True):
@@ -37,9 +39,29 @@ st.markdown("# 📁 Workspace")
 st.caption("Step 0 — Select or create a project workspace")
 st.markdown("---")
 
+# ── Session user tag ──────────────────────────────────────────────────────────
+st.markdown("### Your User Tag")
+st.caption("Enter your name or team identifier so your workspaces are kept separate from other users.")
+_col_tag, _col_reset = st.columns([3, 1])
+_stored_tag = st.session_state.get("pmu_user_tag", "")
+_user_tag   = _col_tag.text_input(
+    "Your Name / Tag",
+    value=_stored_tag,
+    placeholder="e.g. Malli, District_A, Team_FLN",
+    key="ws_user_tag_input",
+)
+st.session_state["pmu_user_tag"] = _user_tag.strip()
+if _col_reset.button("Clear tag", use_container_width=True):
+    st.session_state["pmu_user_tag"] = ""
+    st.rerun()
+
+st.markdown("---")
+
 active_ws = get_workspace()
 if active_ws:
-    st.success(f"**Active workspace:** {active_ws['name']} · Project: {active_ws['project_code']}")
+    st.success(f"**Active workspace:** {active_ws['name']}"
+               + (f" [{active_ws['user_tag']}]" if active_ws.get("user_tag") else "")
+               + f"  ·  Project: {active_ws['project_code']}")
     if st.button("Close workspace (keep data)", use_container_width=False):
         set_workspace(None); st.rerun()
     st.markdown("---")
@@ -53,6 +75,12 @@ with st.expander("➕ Create New Workspace", expanded=(active_ws is None)):
         new_code = st.text_input("Project Code", placeholder="e.g. TTM", max_chars=10)
     new_desc = st.text_area("Description (optional)", height=80)
 
+    _tag_display = st.session_state.get("pmu_user_tag", "")
+    if _tag_display:
+        st.info(f"This workspace will be created under user tag: **{_tag_display}**")
+    else:
+        st.warning("Set your User Tag above so this workspace is isolated to you.")
+
     if st.button("Create Workspace", type="primary"):
         if not new_name.strip():
             st.error("Workspace name is required.")
@@ -60,39 +88,56 @@ with st.expander("➕ Create New Workspace", expanded=(active_ws is None)):
             st.error("Project code is required.")
         else:
             try:
-                ws_meta = create_workspace(new_name.strip(), new_code.strip(), new_desc.strip())
+                ws_meta = create_workspace(
+                    new_name.strip(), new_code.strip(),
+                    user_tag=_tag_display,
+                    description=new_desc.strip(),
+                )
                 set_workspace(ws_meta)
                 st.success(f"Workspace **{new_name}** created and activated.")
                 st.rerun()
-            except FileExistsError:
-                st.error(f"A workspace named '{new_name}' already exists. Choose a different name.")
+            except FileExistsError as _e:
+                st.error(str(_e))
 
 # ── Existing Workspaces ───────────────────────────────────────────────────────
 st.markdown("### Existing Workspaces")
-workspaces = list_workspaces()
+_current_tag  = st.session_state.get("pmu_user_tag", "")
+_all_ws       = list_workspaces()
+_show_all     = st.toggle("Show all users' workspaces", value=False, key="ws_show_all")
+
+if _current_tag and not _show_all:
+    workspaces = [w for w in _all_ws if w.get("user_tag", "") == _current_tag]
+    if not workspaces and _all_ws:
+        st.caption(f"No workspaces found for tag **{_current_tag}**. Toggle 'Show all' to see others.")
+else:
+    workspaces = _all_ws
 
 if not workspaces:
     st.info("No workspaces yet. Create one above to begin.")
 else:
     for ws_meta in workspaces:
         is_active = active_ws and active_ws.get("slug") == ws_meta["slug"]
-        border = "2px solid #1F3864" if is_active else "1px solid #ddd"
 
         with st.container(border=True):
             c1, c2, c3 = st.columns([3, 1, 1])
             with c1:
                 label = f"📁 **{ws_meta['name']}**"
+                if ws_meta.get("user_tag"):
+                    label += f"  `{ws_meta['user_tag']}`"
                 if is_active:
                     label += " ✅"
                 st.markdown(label)
-                st.caption(f"Project: {ws_meta['project_code']}  |  Created: {ws_meta.get('created', '—')}  |  Modified: {ws_meta.get('modified', '—')}")
+                st.caption(
+                    f"Project: {ws_meta['project_code']}  |  "
+                    f"Created: {ws_meta.get('created', '—')}  |  "
+                    f"Modified: {ws_meta.get('modified', '—')}"
+                )
                 if ws_meta.get("description"):
                     st.caption(ws_meta["description"])
-                # Show saved config count
-                configs = list_all_configs(ws_meta["path"])
-                total_configs = sum(len(v) for v in configs.values())
-                if total_configs:
-                    st.caption(f"💾 {total_configs} saved configuration(s)")
+                configs     = list_all_configs(ws_meta["path"])
+                total_cfgs  = sum(len(v) for v in configs.values())
+                if total_cfgs:
+                    st.caption(f"💾 {total_cfgs} saved configuration(s)")
 
             with c2:
                 if not is_active:

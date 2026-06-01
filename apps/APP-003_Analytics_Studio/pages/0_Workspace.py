@@ -31,9 +31,22 @@ st.markdown("# 📁 Workspace")
 st.caption("Step 0 — Select or create a project workspace")
 st.markdown("---")
 
+_col_tag, _col_clr = st.columns([3, 1])
+_user_tag = _col_tag.text_input("Your Name / User Tag",
+    value=st.session_state.get("pmu_user_tag", ""),
+    placeholder="e.g. Malli, District_A, Team_FLN", key="ws_tag_003")
+st.session_state["pmu_user_tag"] = _user_tag.strip()
+if _col_clr.button("Clear", key="ws_clr_003", use_container_width=True):
+    st.session_state["pmu_user_tag"] = ""; st.rerun()
+st.caption("Your workspaces are isolated from other users by this tag.")
+st.markdown("---")
+
 active_ws = get_workspace()
 if active_ws:
-    st.success(f"**Active workspace:** {active_ws['name']} · Project: {active_ws['project_code']}")
+    _ws_label = f"**Active workspace:** {active_ws['name']}"
+    if active_ws.get("user_tag"):
+        _ws_label += f" [{active_ws['user_tag']}]"
+    st.success(_ws_label + f"  ·  Project: {active_ws['project_code']}")
     if st.button("Close workspace"):
         set_workspace(None); st.rerun()
     st.markdown("---")
@@ -43,26 +56,37 @@ with st.expander("➕ Create New Workspace", expanded=(active_ws is None)):
     new_name = c1.text_input("Workspace Name", placeholder="e.g. FLN Data Analysis 2026")
     new_code = c2.text_input("Project Code", placeholder="e.g. FLN", max_chars=10)
     new_desc = st.text_area("Description (optional)", height=70)
+    _tag_display = st.session_state.get("pmu_user_tag", "")
+    if _tag_display:
+        st.info(f"Will be created under user tag: **{_tag_display}**")
     if st.button("Create Workspace", type="primary"):
         if not new_name.strip() or not new_code.strip():
             st.error("Name and project code are required.")
         else:
             try:
-                ws_meta = create_workspace(new_name.strip(), new_code.strip(), new_desc.strip())
+                ws_meta = create_workspace(new_name.strip(), new_code.strip(),
+                                           user_tag=_tag_display, description=new_desc.strip())
                 set_workspace(ws_meta); st.rerun()
-            except FileExistsError:
-                st.error(f"A workspace named '{new_name}' already exists.")
+            except FileExistsError as _e:
+                st.error(str(_e))
 
 st.markdown("### Existing Workspaces")
-workspaces = list_workspaces()
+_all_ws   = list_workspaces()
+_cur_tag  = st.session_state.get("pmu_user_tag", "")
+_show_all = st.toggle("Show all users' workspaces", value=False, key="ws_all_003")
+workspaces = _all_ws if (_show_all or not _cur_tag) else [w for w in _all_ws if w.get("user_tag", "") == _cur_tag]
 if not workspaces:
-    st.info("No workspaces yet. Create one above.")
+    st.info("No workspaces found. Create one above." + (f" (Filtered by tag: {_cur_tag})" if _cur_tag else ""))
 else:
     for ws_meta in workspaces:
         is_active = active_ws and active_ws.get("slug") == ws_meta["slug"]
         with st.container(border=True):
             c1, c2, c3 = st.columns([3, 1, 1])
-            label = f"📁 **{ws_meta['name']}**" + (" ✅" if is_active else "")
+            label = f"📁 **{ws_meta['name']}**"
+            if ws_meta.get("user_tag"):
+                label += f"  `{ws_meta['user_tag']}`"
+            if is_active:
+                label += " ✅"
             c1.markdown(label)
             c1.caption(f"Project: {ws_meta['project_code']}  |  Modified: {ws_meta.get('modified', '—')}")
             configs = list_all_configs(ws_meta["path"])
