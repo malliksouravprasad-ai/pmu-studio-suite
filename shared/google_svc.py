@@ -31,9 +31,22 @@ SCOPES_ALL = list(set(SCOPES_SHEETS + SCOPES_FORMS))
 # ── Authentication ────────────────────────────────────────────────────────────
 
 def credentials_available() -> bool:
-    """True if credentials exist — from st.secrets (cloud) or credentials.json (local)."""
+    """
+    True if credentials exist from any source:
+      1. UI-saved service account (credentials_manager)
+      2. st.secrets / secrets.toml
+      3. Local credentials.json (dev only)
+    """
+    try:
+        from .credentials_manager import get_google_sa
+        if get_google_sa():
+            return True
+    except Exception:
+        pass
+
     if _CREDS_PATH.exists():
         return True
+
     try:
         import streamlit as st
         return "gcp_service_account" in st.secrets
@@ -43,13 +56,22 @@ def credentials_available() -> bool:
 
 def get_credentials(scopes: list[str] = None):
     """
-    Return valid credentials.
-    Checks st.secrets first (Streamlit Cloud service account).
-    Falls back to OAuth credentials.json for local development.
+    Return valid Google credentials.
+    Priority: UI-saved SA → st.secrets SA → local OAuth credentials.json
     """
     scopes = scopes or SCOPES_ALL
 
-    # Cloud path — service account from st.secrets
+    # Priority 1 — UI-saved service account (set via Integrations page)
+    try:
+        from .credentials_manager import get_google_sa
+        sa = get_google_sa()
+        if sa:
+            from google.oauth2 import service_account
+            return service_account.Credentials.from_service_account_info(sa, scopes=scopes)
+    except Exception:
+        pass
+
+    # Priority 2 — st.secrets / secrets.toml (baked into Docker image)
     try:
         import streamlit as st
         if "gcp_service_account" in st.secrets:
@@ -61,7 +83,7 @@ def get_credentials(scopes: list[str] = None):
     except Exception:
         pass
 
-    # Local path — OAuth flow from credentials.json
+    # Priority 3 — local OAuth credentials.json (development only)
     from google.oauth2.credentials import Credentials
     from google_auth_oauthlib.flow import InstalledAppFlow
     from google.auth.transport.requests import Request

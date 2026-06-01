@@ -35,8 +35,8 @@ COPY templates/ ./templates/
 # Streamlit secrets — credentials for Google, BigQuery, Apps Script
 COPY .streamlit/ ./.streamlit/
 
-# Runtime directories — ephemeral within the container's lifetime
-RUN mkdir -p workspaces outputs inputs
+# Runtime directories (ephemeral) + config dir for UI-saved credentials
+RUN mkdir -p workspaces outputs inputs config
 
 EXPOSE 8080
 

@@ -1,38 +1,65 @@
-"""BigQuery connector for PMU Tool Suite — authenticates from st.secrets."""
+"""BigQuery connector — credentials from UI (credentials_manager) or st.secrets fallback."""
 import pandas as pd
 
 
-def bq_available() -> bool:
-    """True if BigQuery credentials are configured in st.secrets."""
+def _get_sa_and_project() -> tuple[dict, str] | tuple[None, None]:
+    """
+    Return (service_account_dict, project_id) from the best available source.
+    Priority: UI-saved → st.secrets → None
+    """
+    # Priority 1 — UI-saved via Integrations page
+    try:
+        from .credentials_manager import get_google_sa, get_bigquery_config
+        sa = get_google_sa()
+        bq = get_bigquery_config()
+        if sa and bq and bq.get("project_id"):
+            return sa, bq["project_id"]
+    except Exception:
+        pass
+
+    # Priority 2 — st.secrets / secrets.toml
     try:
         import streamlit as st
-        return "gcp_service_account" in st.secrets and "bigquery" in st.secrets
+        if "gcp_service_account" in st.secrets and "bigquery" in st.secrets:
+            return dict(st.secrets["gcp_service_account"]), st.secrets["bigquery"]["project_id"]
     except Exception:
-        return False
+        pass
+
+    return None, None
+
+
+def bq_available() -> bool:
+    """True if BigQuery credentials are available from any source."""
+    sa, project = _get_sa_and_project()
+    return sa is not None and bool(project)
 
 
 def _get_client():
-    import streamlit as st
     from google.oauth2 import service_account
     from google.cloud import bigquery
 
+    sa, project = _get_sa_and_project()
+    if not sa:
+        raise RuntimeError("BigQuery credentials not configured. Go to Integrations to set up.")
     creds = service_account.Credentials.from_service_account_info(
-        dict(st.secrets["gcp_service_account"]),
-        scopes=["https://www.googleapis.com/auth/bigquery"],
+        sa, scopes=["https://www.googleapis.com/auth/bigquery"]
     )
-    project = st.secrets["bigquery"]["project_id"]
     return bigquery.Client(credentials=creds, project=project)
+
+
+def _get_project() -> str:
+    _, project = _get_sa_and_project()
+    return project or ""
 
 
 def bq_connection_info() -> dict:
     """Return {connected, project, error}."""
     try:
         if not bq_available():
-            return {"connected": False, "project": None, "error": "Not configured in secrets.toml"}
-        import streamlit as st
+            return {"connected": False, "project": None, "error": "Not configured. Use Integrations page to set up BigQuery."}
         client = _get_client()
         list(client.list_datasets(max_results=1))
-        return {"connected": True, "project": st.secrets["bigquery"]["project_id"], "error": None}
+        return {"connected": True, "project": _get_project(), "error": None}
     except Exception as exc:
         return {"connected": False, "project": None, "error": str(exc)}
 
@@ -44,15 +71,13 @@ def bq_list_datasets() -> list:
 
 def bq_list_tables(dataset_id: str) -> list:
     """List all table IDs in a dataset."""
-    import streamlit as st
-    project = st.secrets["bigquery"]["project_id"]
+    project = _get_project()
     return [t.table_id for t in _get_client().list_tables(f"{project}.{dataset_id}")]
 
 
 def bq_table_to_df(dataset_id: str, table_id: str, limit: int = None) -> pd.DataFrame:
     """Load a BigQuery table into a DataFrame (optionally row-limited)."""
-    import streamlit as st
-    project = st.secrets["bigquery"]["project_id"]
+    project = _get_project()
     sql = f"SELECT * FROM `{project}.{dataset_id}.{table_id}`"
     if limit:
         sql += f" LIMIT {int(limit)}"
@@ -71,11 +96,10 @@ def bq_aggregate(
     metrics: dict,
 ) -> pd.DataFrame:
     """
-    Server-side GROUP BY aggregation — no data transferred to Streamlit until aggregated.
+    Server-side GROUP BY aggregation — no raw data transferred to Streamlit.
     metrics = {column_name: 'SUM' | 'AVG' | 'COUNT' | 'MIN' | 'MAX'}
     """
-    import streamlit as st
-    project = st.secrets["bigquery"]["project_id"]
+    project     = _get_project()
     agg_exprs   = ", ".join(f"{func}(`{col}`) AS `{col}_{func}`" for col, func in metrics.items())
     group_exprs = ", ".join(f"`{c}`" for c in group_cols)
     sql = (
@@ -93,11 +117,10 @@ def bq_push_df(
     mode: str = "append",
 ) -> None:
     """Write a DataFrame to BigQuery. mode: 'append' or 'replace'."""
-    import streamlit as st
     from google.cloud import bigquery as bq
 
-    project = st.secrets["bigquery"]["project_id"]
-    client  = _get_client()
+    project     = _get_project()
+    client      = _get_client()
     disposition = (
         bq.WriteDisposition.WRITE_APPEND
         if mode == "append"

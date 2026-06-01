@@ -125,6 +125,14 @@ from .column_metadata import (
     render_column_metadata_panel,
 )
 
+# ── Credentials Manager ───────────────────────────────────────────────────────
+from .credentials_manager import (
+    get_google_sa, save_google_sa, clear_google_sa,
+    get_bigquery_config, save_bigquery_config, clear_bigquery_config,
+    get_appscript_config, save_appscript_config, clear_appscript_config,
+    integration_summary,
+)
+
 # ── BigQuery Integration ───────────────────────────────────────────────────────
 from .bigquery_svc import (
     bq_available,
