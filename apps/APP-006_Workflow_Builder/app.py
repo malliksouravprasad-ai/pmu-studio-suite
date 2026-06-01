@@ -14,6 +14,7 @@ pg = st.navigation([
     st.Page("pages/0_Workspace.py", title="Workspace", icon="📁", default=True),
     st.Page("pages/1_Define.py",    title="Define",    icon="📝"),
     st.Page("pages/2_Tracker.py",   title="Tracker",   icon="📊"),
-    st.Page("pages/3_Generate.py",  title="Generate",  icon="📥"),
+    st.Page("pages/3_Generate.py",    title="Generate",     icon="📥"),
+    st.Page("pages/_Integrations.py", title="Integrations", icon="🔗"),
 ])
 pg.run()

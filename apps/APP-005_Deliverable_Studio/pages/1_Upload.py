@@ -12,9 +12,12 @@ import pandas as pd
 import streamlit as st
 from engine import (
     init_state, reset_state, get_workspace, get_job, set_job,
-    set_raw_df, has_data, DeliverableStudioJob,
+    set_raw_df, get_raw_df, has_data, DeliverableStudioJob,
 )
-from shared import list_configs, load_config
+from shared import (
+    list_configs, load_config, credentials_available, read_sheet,
+    render_integration_sidebar, render_bq_upload_tab,
+)
 
 st.set_page_config(page_title="Upload — Deliverable Studio", page_icon="📤", layout="wide")
 init_state()
@@ -34,6 +37,7 @@ with st.sidebar:
         st.info(f"📄 {job.source_filename}")
     if st.button("🗑 Reset Studio", use_container_width=True):
         reset_state(); st.rerun()
+    render_integration_sidebar()
 
 st.markdown("# 📤 Upload")
 st.caption("Step 1 of 3 — Load your dataset")
@@ -76,29 +80,57 @@ if ws:
                 except Exception as e:
                     st.error(f"Could not read: {e}")
 
-uploaded = st.file_uploader("Upload CSV or XLSX", type=["csv", "xlsx"])
+tab_file, tab_gsheet, tab_bq = st.tabs(["📂 Upload File", "🔗 Google Sheet", "☁ BigQuery"])
 
-if uploaded is None:
-    if has_data():
-        st.info(f"**{job.source_filename}** is loaded — proceed to **Report Details**.")
+with tab_file:
+    uploaded = st.file_uploader("Upload CSV or XLSX", type=["csv", "xlsx"], key="del_file_up")
+    if uploaded:
+        try:
+            df = pd.read_csv(uploaded) if uploaded.name.endswith(".csv") else pd.read_excel(uploaded)
+            job.source_filename = uploaded.name
+            if ws:
+                job.report_config.project_code = ws["project_code"]
+            set_job(job); set_raw_df(df)
+            st.success(f"Loaded **{len(df):,} rows × {len(df.columns)} cols**")
+            st.rerun()
+        except Exception as e:
+            st.error(f"Could not read file: {e}")
+
+with tab_gsheet:
+    if not credentials_available():
+        st.info("🔒 Google credentials not configured.")
     else:
-        st.info("Upload a CSV or XLSX file, or select a workspace data source above.")
+        gs_url  = st.text_input("Google Sheet URL or ID", key="del_gs_url")
+        gs_name = st.text_input("Sheet Tab Name", value="Sheet1", key="del_gs_name")
+        if st.button("Load from Google Sheets", type="primary", key="del_gs_btn") and gs_url.strip():
+            with st.spinner("Reading Google Sheet…"):
+                try:
+                    df = read_sheet(gs_url.strip(), gs_name.strip() or "Sheet1")
+                    job.source_filename = f"GSheet: {gs_url[:40]}…"
+                    if ws:
+                        job.report_config.project_code = ws["project_code"]
+                    set_job(job); set_raw_df(df)
+                    st.success(f"Loaded **{len(df):,} rows × {len(df.columns)} cols**")
+                    st.rerun()
+                except Exception as e:
+                    st.error(f"Could not read sheet: {e}")
+
+with tab_bq:
+    def _bq_loaded_005(df, label):
+        job.source_filename = label
+        if ws:
+            job.report_config.project_code = ws["project_code"]
+        set_job(job); set_raw_df(df)
+    render_bq_upload_tab(_bq_loaded_005)
+
+if not has_data():
+    st.info("Upload a CSV/XLSX, connect a Google Sheet, or load from BigQuery to begin.")
     st.stop()
 
-try:
-    df = pd.read_csv(uploaded) if uploaded.name.endswith(".csv") else pd.read_excel(uploaded)
-except Exception as e:
-    st.error(f"Could not read file: {e}"); st.stop()
-
-job.source_filename = uploaded.name
-if ws:
-    job.report_config.project_code = ws["project_code"]
-set_job(job); set_raw_df(df)
-
-st.success(f"Loaded **{len(df):,} rows × {len(df.columns)} columns** from `{uploaded.name}`")
+df = get_raw_df()
+st.success(f"**{job.source_filename}** loaded — navigate to **Report Details** to continue.")
 with st.expander("Preview (first 10 rows)", expanded=True):
     st.dataframe(df.head(10), use_container_width=True)
 m1, m2, m3 = st.columns(3)
 m1.metric("Rows", f"{len(df):,}"); m2.metric("Columns", len(df.columns))
 m3.metric("Numeric Cols", len(df.select_dtypes(include="number").columns))
-st.success("File loaded. Navigate to **Report Details** to continue.")

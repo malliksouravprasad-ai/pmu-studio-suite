@@ -31,23 +31,42 @@ SCOPES_ALL = list(set(SCOPES_SHEETS + SCOPES_FORMS))
 # ── Authentication ────────────────────────────────────────────────────────────
 
 def credentials_available() -> bool:
-    """True if credentials.json exists at the shared credentials folder."""
-    return _CREDS_PATH.exists()
+    """True if credentials exist — from st.secrets (cloud) or credentials.json (local)."""
+    if _CREDS_PATH.exists():
+        return True
+    try:
+        import streamlit as st
+        return "gcp_service_account" in st.secrets
+    except Exception:
+        return False
 
 
 def get_credentials(scopes: list[str] = None):
     """
-    Return valid OAuth2 credentials.
-    Opens browser for first-time authorization.
-    Caches token in credentials/token.json.
+    Return valid credentials.
+    Checks st.secrets first (Streamlit Cloud service account).
+    Falls back to OAuth credentials.json for local development.
     """
+    scopes = scopes or SCOPES_ALL
+
+    # Cloud path — service account from st.secrets
+    try:
+        import streamlit as st
+        if "gcp_service_account" in st.secrets:
+            from google.oauth2 import service_account
+            return service_account.Credentials.from_service_account_info(
+                dict(st.secrets["gcp_service_account"]),
+                scopes=scopes,
+            )
+    except Exception:
+        pass
+
+    # Local path — OAuth flow from credentials.json
     from google.oauth2.credentials import Credentials
     from google_auth_oauthlib.flow import InstalledAppFlow
     from google.auth.transport.requests import Request
 
-    scopes = scopes or SCOPES_ALL
     creds = None
-
     if _TOKEN_PATH.exists():
         creds = Credentials.from_authorized_user_file(str(_TOKEN_PATH), scopes)
 
@@ -55,7 +74,7 @@ def get_credentials(scopes: list[str] = None):
         if creds and creds.expired and creds.refresh_token:
             creds.refresh(Request())
         else:
-            flow = InstalledAppFlow.from_client_secrets_file(str(_CREDS_PATH), scopes)
+            flow  = InstalledAppFlow.from_client_secrets_file(str(_CREDS_PATH), scopes)
             creds = flow.run_local_server(port=0)
         _TOKEN_PATH.write_text(creds.to_json())
 

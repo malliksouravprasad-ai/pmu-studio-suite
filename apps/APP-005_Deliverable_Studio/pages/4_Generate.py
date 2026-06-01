@@ -20,6 +20,7 @@ from engine import (
 from shared import (
     generate_id, save_config, credentials_available,
     upload_to_drive,
+    render_integration_sidebar, render_bq_push_section, render_appscript_section,
 )
 
 st.set_page_config(page_title="Generate — Deliverable Studio", page_icon="📥", layout="wide")
@@ -40,6 +41,7 @@ with st.sidebar:
     st.info(f"**{len(rc.sections)}** section(s) · **{len(rc.selected_formats)}** format(s)")
     if st.button("🗑 Reset Studio", use_container_width=True):
         reset_state(); st.rerun()
+    render_integration_sidebar()
 
 st.markdown("# 📥 Generate")
 st.caption("Step 4 of 3 — Generate report outputs and save configuration")
@@ -82,24 +84,21 @@ st.info(f"Selected formats: **{', '.join(OUTPUT_FORMATS[f] for f in rc.selected_
 
 # ── Generate all ──────────────────────────────────────────────────────────────
 if st.button("📦 Generate All Outputs", type="primary", use_container_width=True):
-    generated = {}
     with st.spinner("Generating outputs…"):
-        outputs = generate_all(df, rc, ws_path)
-    for fmt, (path, buf) in outputs.items():
-        generated[fmt] = (path, buf)
-    register_outputs(artifact_id, project_code, {k: v[0] for k, v in generated.items()})
+        _section_data = compute_section_data(df, rc)
+        outputs       = generate_all(df, _section_data, rc, artifact_id)
+    register_outputs(artifact_id, project_code, {k: (v[0], v[1], v[2]) for k, v in outputs.items()})
     st.success(f"All outputs generated! Artifact: **{artifact_id}**")
 
-    cols = st.columns(len(generated))
     ext_map = {"excel": ("xlsx", "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"),
                "word":  ("docx", "application/vnd.openxmlformats-officedocument.wordprocessingml.document"),
                "ppt":   ("pptx", "application/vnd.openxmlformats-officedocument.presentationml.presentation"),
                "pdf":   ("pdf",  "application/pdf")}
-    for col, (fmt, (path, buf)) in zip(cols, generated.items()):
+    cols = st.columns(len(outputs))
+    for col, (fmt, (fname, buf, path)) in zip(cols, outputs.items()):
         ext, mime = ext_map.get(fmt, ("bin", "application/octet-stream"))
         col.download_button(f"⬇ {OUTPUT_FORMATS[fmt].split(' ')[0]}", buf,
-            file_name=os.path.basename(path), mime=mime,
-            use_container_width=True, type="primary")
+            file_name=fname, mime=mime, use_container_width=True, type="primary")
 
 # ── Individual formats ────────────────────────────────────────────────────────
 st.markdown("---")
@@ -115,8 +114,9 @@ for col, fmt in zip(cols, rc.selected_formats):
     fn, ext, mime = fmt_funcs.get(fmt, (None, "bin", "application/octet-stream"))
     if fn and col.button(f"Generate {OUTPUT_FORMATS[fmt].split('(')[0].strip()}", use_container_width=True):
         with st.spinner(f"Building {ext}…"):
-            path, buf = fn(df, rc, ws_path)
-        col.download_button(f"⬇ {ext}", buf, file_name=os.path.basename(path), mime=mime, use_container_width=True)
+            _sd       = compute_section_data(df, rc)
+            fname, buf = fn(_sd, rc, artifact_id)
+        col.download_button(f"⬇ {ext}", buf, file_name=fname, mime=mime, use_container_width=True)
 
 # ── Segregated Reports by Column ─────────────────────────────────────────────
 st.markdown("---")
@@ -181,9 +181,23 @@ else:
             try:
                 fn, ext, mime = fmt_funcs.get(drive_fmt, (None, "bin", ""))
                 if fn:
-                    path, _ = fn(df, rc, ws_path)
-                    result  = upload_to_drive(path)
+                    _sd       = compute_section_data(df, rc)
+                    fname, buf = fn(_sd, rc, artifact_id)
+                    import tempfile, pathlib
+                    _tmp = pathlib.Path(tempfile.mktemp(suffix=f".{ext}"))
+                    _tmp.write_bytes(buf.getvalue())
+                    result = upload_to_drive(str(_tmp))
                     st.success("Uploaded to Drive!")
                     st.markdown(f"**Drive URL:** {result['web_url']}")
+                    _tmp.unlink(missing_ok=True)
             except Exception as e:
                 st.error(f"Upload failed: {e}")
+
+# ── BigQuery & Apps Script ────────────────────────────────────────────────────
+st.markdown("---")
+st.markdown("### Push to BigQuery / Trigger Aggregator")
+_tab_bq, _tab_as = st.tabs(["☁ Push to BigQuery", "📜 Apps Script Aggregator"])
+with _tab_bq:
+    render_bq_push_section(df, artifact_id, project_code)
+with _tab_as:
+    render_appscript_section()

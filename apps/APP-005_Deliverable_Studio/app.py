@@ -16,5 +16,6 @@ pg = st.navigation([
     st.Page("pages/2_Report_Details.py",  title="Report Details", icon="📝"),
     st.Page("pages/3_Sections.py",        title="Sections",       icon="📄"),
     st.Page("pages/4_Generate.py",        title="Generate",       icon="📥"),
+    st.Page("pages/_Integrations.py",     title="Integrations",   icon="🔗"),
 ])
 pg.run()

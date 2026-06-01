@@ -124,3 +124,32 @@ from .column_metadata import (
     metadata_from_monitoring_job,
     render_column_metadata_panel,
 )
+
+# ── BigQuery Integration ───────────────────────────────────────────────────────
+from .bigquery_svc import (
+    bq_available,
+    bq_connection_info,
+    bq_list_datasets,
+    bq_list_tables,
+    bq_table_to_df,
+    bq_query,
+    bq_aggregate,
+    bq_push_df,
+)
+
+# ── Apps Script Integration ────────────────────────────────────────────────────
+from .appscript_svc import (
+    appscript_available,
+    appscript_status,
+    appscript_aggregate,
+    appscript_ping,
+)
+
+# ── Integrations UI ───────────────────────────────────────────────────────────
+from .integrations_ui import (
+    render_integration_sidebar,
+    render_bq_upload_tab,
+    render_bq_push_section,
+    render_appscript_section,
+    render_integrations_page,
+)

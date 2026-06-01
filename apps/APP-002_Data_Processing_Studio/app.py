@@ -19,5 +19,6 @@ pg = st.navigation([
     st.Page("pages/5_Validate.py",           title="Validate",          icon="✅"),
     st.Page("pages/6_Generate.py",           title="Generate",          icon="📥"),
     st.Page("pages/7_Pipeline_Overview.py",  title="Pipeline Overview", icon="🔍"),
+    st.Page("pages/_Integrations.py",        title="Integrations",      icon="🔗"),
 ])
 pg.run()

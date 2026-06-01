@@ -18,6 +18,7 @@ from shared import (
     list_configs, load_config, clone_config,
     credentials_available, read_sheet,
     load_column_metadata, render_column_metadata_panel,
+    render_integration_sidebar, render_bq_upload_tab,
 )
 
 st.set_page_config(page_title="Upload — Data Processing Studio", page_icon="📤", layout="wide")
@@ -50,6 +51,7 @@ with st.sidebar:
         st.markdown(f"- {len(rules)} validation rule(s)")
     if st.button("🗑 Reset Studio", use_container_width=True):
         reset_state(); st.rerun()
+    render_integration_sidebar()
 
 st.markdown("# 📤 Upload")
 st.caption("Step 1 of 6 — Load your dataset (file, Google Sheet, or workspace data source)")
@@ -102,7 +104,7 @@ if ws:
                     st.error(f"Could not read file: {e}")
 
 # ── Input tabs ────────────────────────────────────────────────────────────────
-tab_file, tab_gsheet = st.tabs(["📂 Upload File", "🔗 Google Sheet"])
+tab_file, tab_gsheet, tab_bq = st.tabs(["📂 Upload File", "🔗 Google Sheet", "☁ BigQuery"])
 
 with tab_file:
     col_left, col_right = st.columns([2, 1])
@@ -139,6 +141,13 @@ with tab_gsheet:
                     st.rerun()
                 except Exception as e:
                     st.error(f"Could not read sheet: {e}")
+
+with tab_bq:
+    def _bq_loaded_002(df, label):
+        job.source_filename = label
+        job.project_code    = ws.get("project_code", "PMU") if ws else "PMU"
+        set_job(job); set_raw_df(df)
+    render_bq_upload_tab(_bq_loaded_002)
 
 # ── Preview ───────────────────────────────────────────────────────────────────
 if has_data():

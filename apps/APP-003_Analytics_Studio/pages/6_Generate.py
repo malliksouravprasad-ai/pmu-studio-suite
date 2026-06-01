@@ -11,6 +11,7 @@ for _p in [_PMU_ROOT, _APP_DIR]:
 import io
 import zipfile
 import streamlit as st
+from shared import render_integration_sidebar, render_bq_push_section, render_appscript_section
 from engine import (
     init_state, reset_state, get_workspace, get_job, set_job,
     has_data, get_raw_df,
@@ -45,6 +46,7 @@ with st.sidebar:
             f"**{len([r for r in job.analytics_job.rankings if r.enabled])}** rank")
     if st.button("🗑 Reset Studio", use_container_width=True):
         reset_state(); st.rerun()
+    render_integration_sidebar()
 
 st.markdown("# 📥 Generate")
 st.caption("Step 6 of 6 — Run everything, save config, download outputs")
@@ -288,6 +290,19 @@ if any([agg_results, kpi_result, rank_results, var_results, trend_results]):
                 for _e in _errs:
                     st.warning(_e)
         st.success(f"ZIP ready — {len(_seg_vals) - len(_errs)} file(s) generated.")
+
+    # ── BigQuery & Apps Script ────────────────────────────────────────────────
+    st.markdown("---")
+    st.markdown("### Push to BigQuery / Trigger Aggregator")
+    _tab_bq3, _tab_as3 = st.tabs(["☁ Push to BigQuery", "📜 Apps Script Aggregator"])
+    with _tab_bq3:
+        if kpi_result:
+            _kdf, _ = kpi_result
+            render_bq_push_section(_kdf, artifact_id, project_code)
+        else:
+            render_bq_push_section(df, artifact_id, project_code)
+    with _tab_as3:
+        render_appscript_section()
 
     # ── Inter-app pass ────────────────────────────────────────────────────────
     if ws and kpi_result:

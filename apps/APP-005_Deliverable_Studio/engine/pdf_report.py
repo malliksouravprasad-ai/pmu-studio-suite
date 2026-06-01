@@ -14,6 +14,38 @@ from reportlab.lib.enums import TA_CENTER, TA_LEFT
 from .deliverable_model import ReportConfig, SectionDef
 
 _NAVY   = colors.HexColor("#1F3864")
+
+
+def _get_body_font() -> str:
+    """Return a Unicode-capable font name if one is available on this system, else Helvetica."""
+    import os
+    from reportlab.pdfbase import pdfmetrics
+    from reportlab.pdfbase.ttfonts import TTFont
+
+    _NAME = "PMUUnicode"
+    try:
+        pdfmetrics.getFont(_NAME)
+        return _NAME
+    except Exception:
+        pass
+
+    candidates = [
+        "/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf",
+        "/usr/share/fonts/truetype/freefont/FreeSans.ttf",
+        "/usr/share/fonts/truetype/liberation/LiberationSans-Regular.ttf",
+        "/usr/share/fonts/truetype/noto/NotoSans-Regular.ttf",
+        "C:/Windows/Fonts/arial.ttf",
+        "C:/Windows/Fonts/calibri.ttf",
+        "/System/Library/Fonts/Supplemental/Arial.ttf",
+    ]
+    for path in candidates:
+        if os.path.exists(path):
+            try:
+                pdfmetrics.registerFont(TTFont(_NAME, path))
+                return _NAME
+            except Exception:
+                continue
+    return "Helvetica"
 _LIGHT  = colors.HexColor("#D9E1F2")
 _TOTAL  = colors.HexColor("#BDD7EE")
 _GREY   = colors.HexColor("#595959")
@@ -22,20 +54,21 @@ _PAGE_W, _PAGE_H = A4
 
 
 def _styles():
-    ss = getSampleStyleSheet()
+    ss        = getSampleStyleSheet()
+    body_font = _get_body_font()
     title_style = ParagraphStyle(
         "PMUTitle", parent=ss["Title"],
         fontSize=22, textColor=_NAVY, spaceAfter=6, leading=26)
     meta_style = ParagraphStyle(
         "PMUMeta", parent=ss["Normal"],
-        fontSize=10, textColor=_GREY, spaceAfter=3)
+        fontName=body_font, fontSize=10, textColor=_GREY, spaceAfter=3)
     h1_style = ParagraphStyle(
         "PMUH1", parent=ss["Heading1"],
         fontSize=14, textColor=_NAVY, spaceAfter=6, spaceBefore=12,
         borderPad=4, leading=18)
     body_style = ParagraphStyle(
         "PMUBody", parent=ss["Normal"],
-        fontSize=10, spaceAfter=6, leading=14)
+        fontName=body_font, fontSize=10, spaceAfter=6, leading=14)
     return title_style, meta_style, h1_style, body_style
 
 

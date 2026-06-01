@@ -1,0 +1,24 @@
+[
+  {
+    "id": "APP-TEST::test_template",
+    "name": "Test Template",
+    "app_id": "APP-TEST",
+    "type": "excel",
+    "path": "C:\\Users\\malli\\AppData\\Local\\Temp\\claude\\tmp7s09yuk7.xlsx",
+    "description": "Verify template",
+    "tags": [
+      "test"
+    ],
+    "registered": "2026-05-31"
+  },
+  {
+    "id": "SHARED::nep2020_understanding_brief",
+    "name": "Nep2020 Understanding Brief",
+    "app_id": "SHARED",
+    "type": "ppt",
+    "path": "C:\\Users\\malli\\OneDrive\\Documents\\Claude\\Projects\\PMU_Tools\\templates\\user\\NEP2020_Understanding_Brief.pptx",
+    "description": "",
+    "tags": [],
+    "registered": "2026-05-31"
+  }
+]

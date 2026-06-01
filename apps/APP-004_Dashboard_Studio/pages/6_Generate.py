@@ -18,6 +18,7 @@ from engine import (
 )
 from shared import (
     generate_id, save_config, credentials_available,
+    render_integration_sidebar, render_bq_push_section, render_appscript_section,
     clear_and_write, upload_to_drive, create_spreadsheet,
 )
 
@@ -39,6 +40,7 @@ with st.sidebar:
     st.info(f"**{len(dj.kpis)}** KPI · **{len(dj.charts)}** chart · **{len(dj.tables)}** table")
     if st.button("🗑 Reset Studio", use_container_width=True):
         reset_state(); st.rerun()
+    render_integration_sidebar()
 
 st.markdown("# 📥 Generate")
 st.caption("Step 6 of 6 — Download dashboard Excel workbook")
@@ -197,3 +199,12 @@ if ws:
         out_path = os.path.join(ds_folder, f"{artifact_id}_dashboard_data.xlsx")
         df.to_excel(out_path, index=False)
         st.success("Saved to workspace `data_sources/`. Open APP-005 and select this file.")
+
+# ── BigQuery & Apps Script ────────────────────────────────────────────────────
+st.markdown("---")
+st.markdown("### Push to BigQuery / Trigger Aggregator")
+_tab_bq4, _tab_as4 = st.tabs(["☁ Push to BigQuery", "📜 Apps Script Aggregator"])
+with _tab_bq4:
+    render_bq_push_section(df, artifact_id, project_code)
+with _tab_as4:
+    render_appscript_section()

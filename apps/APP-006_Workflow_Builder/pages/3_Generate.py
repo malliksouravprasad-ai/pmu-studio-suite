@@ -18,6 +18,7 @@ from engine import (
 from shared import (
     generate_id, save_config, clone_config, list_configs,
     credentials_available, clear_and_write, create_spreadsheet, upload_to_drive,
+    render_integration_sidebar, render_appscript_section,
 )
 
 st.set_page_config(page_title="Generate — Workflow Builder", page_icon="📥", layout="wide")
@@ -39,6 +40,7 @@ with st.sidebar:
     st.info(f"**{summary['completed_pct']:.0f}%** complete")
     if st.button("🗑 Reset Builder", use_container_width=True):
         reset_state(); st.rerun()
+    render_integration_sidebar()
 
 st.markdown("# 📥 Generate")
 st.caption("Step 3 of 2 — Download tracker outputs and save workflow definition")
@@ -152,3 +154,8 @@ else:
                     st.success("Uploaded!"); st.markdown(f"**Drive URL:** {result['web_url']}")
                 except Exception as e:
                     st.error(f"Upload failed: {e}")
+
+# ── Apps Script ───────────────────────────────────────────────────────────────
+st.markdown("---")
+st.markdown("### Apps Script Aggregator")
+render_appscript_section()

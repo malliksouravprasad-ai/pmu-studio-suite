@@ -24,6 +24,7 @@ from shared import (
     generate_id, save_config, clone_config, list_configs, export_config,
     credentials_available, clear_and_write, upload_to_drive, create_spreadsheet,
     render_autosave_controls, save_column_metadata, load_column_metadata,
+    render_integration_sidebar, render_bq_push_section, render_appscript_section,
 )
 
 st.set_page_config(page_title="Generate — Data Processing Studio", page_icon="📥", layout="wide")
@@ -47,6 +48,7 @@ with st.sidebar:
     if st.button("🗑 Reset Studio", use_container_width=True):
         reset_state(); st.rerun()
     render_autosave_controls(ws, "APP-002", job, key_prefix="dps")
+    render_integration_sidebar()
 
 st.markdown("# 📥 Generate")
 st.caption("Step 6 of 6 — Apply pipeline, save configuration, download outputs")
@@ -304,3 +306,18 @@ if final_df is not None and len(get_transform_log()) > 0 or get_mapped_df() is n
 
 else:
     st.info("Click **Apply Full Pipeline & Preview** to run the complete pipeline and unlock downloads.")
+
+# ── BigQuery & Apps Script ────────────────────────────────────────────────────
+st.markdown("---")
+st.markdown("### Push to BigQuery / Trigger Aggregator")
+_tab_bq2, _tab_as2 = st.tabs(["☁ Push to BigQuery", "📜 Apps Script Aggregator"])
+with _tab_bq2:
+    _final = get_mapped_df() or get_raw_df()
+    if _final is not None:
+        _pc2 = get_job().project_code or "PMU"
+        _ai2 = get_job().artifact_id  or "PMU-OUT"
+        render_bq_push_section(_final, _ai2, _pc2)
+    else:
+        st.info("Run the pipeline first to enable BigQuery push.")
+with _tab_as2:
+    render_appscript_section()

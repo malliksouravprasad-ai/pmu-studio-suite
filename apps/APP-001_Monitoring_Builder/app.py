@@ -16,6 +16,7 @@ pg = st.navigation([
     st.Page("pages/2_Form.py",       title="Form",       icon="📝"),
     st.Page("pages/3_Validation.py", title="Validation", icon="✅"),
     st.Page("pages/4_KPIs.py",       title="KPIs",       icon="🎯"),
-    st.Page("pages/5_Package.py",    title="Package",    icon="📦"),
+    st.Page("pages/5_Package.py",      title="Package",      icon="📦"),
+    st.Page("pages/_Integrations.py", title="Integrations", icon="🔗"),
 ])
 pg.run()
