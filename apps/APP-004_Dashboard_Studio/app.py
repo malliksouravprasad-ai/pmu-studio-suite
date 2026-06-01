@@ -1,4 +1,4 @@
-"""APP-004 Dashboard Studio — entry point."""
+﻿"""APP-004 Dashboard Studio â€” entry point."""
 import sys
 import os
 
@@ -11,13 +11,17 @@ for _p in [_PMU_ROOT, _APP_DIR]:
 import streamlit as st
 
 pg = st.navigation([
-    st.Page("pages/0_Workspace.py", title="Workspace", icon="📁", default=True),
-    st.Page("pages/1_Upload.py",    title="Upload",    icon="📤"),
-    st.Page("pages/2_KPIs.py",      title="KPIs",      icon="🎯"),
-    st.Page("pages/3_Charts.py",    title="Charts",    icon="📊"),
-    st.Page("pages/4_Tables.py",    title="Tables",    icon="📋"),
-    st.Page("pages/5_Layout.py",    title="Layout",    icon="🖼️"),
-    st.Page("pages/6_Generate.py",    title="Generate",     icon="📥"),
-    st.Page("pages/_Integrations.py", title="Integrations", icon="🔗"),
+    st.Page("pages/0_Workspace.py", title="Workspace", icon="ðŸ“", default=True),
+    st.Page("pages/1_Upload.py",    title="Upload",    icon="ðŸ“¤"),
+    st.Page("pages/2_KPIs.py",      title="KPIs",      icon="ðŸŽ¯"),
+    st.Page("pages/3_Charts.py",    title="Charts",    icon="ðŸ“Š"),
+    st.Page("pages/4_Tables.py",    title="Tables",    icon="ðŸ“‹"),
+    st.Page("pages/5_Layout.py",    title="Layout",    icon="ðŸ–¼ï¸"),
+    st.Page("pages/6_Generate.py",    title="Generate",     icon="ðŸ“¥"),
+    st.Page("pages/_Integrations.py", title="Integrations", icon="ðŸ”—"),
+    st.Page("pages/_AI_Assistant.py",  title="AI Assistant", icon="🤖"),
+    st.Page("pages/_Usage.py",       title="Usage Monitor",  icon="📊"),
 ])
 pg.run()
+
+
