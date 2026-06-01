@@ -1,0 +1,51 @@
+# ── Python ────────────────────────────────────────────────────────────────────
+__pycache__/
+*.py[cod]
+*.pyo
+.venv/
+venv/
+env/
+
+# ── Old-generation apps (not part of this deployment) ────────────────────────
+apps/APP-001_Schema_Builder/
+apps/APP-002_Transformation_Builder/
+apps/APP-003_Rule_Engine/
+apps/APP-004_Lookup_Mapping_Engine/
+apps/APP-005_Aggregation_Builder/
+apps/APP-006_Analytics_Builder/
+apps/APP-007_Visualization_Builder/
+apps/APP-008_Deliverable_Builder/
+apps/APP-009_Workflow_Builder/
+apps/APP-010_Template_Studio/
+
+# ── Legacy deploy copies ──────────────────────────────────────────────────────
+deploy/
+
+# ── Runtime-generated data (created per session, not tracked) ─────────────────
+workspaces/
+workspace/
+outputs/
+data_sources/
+configurations/
+registry.csv
+*/registry.csv
+
+# ── Google credentials (never commit) ────────────────────────────────────────
+credentials/
+credentials.json
+token.json
+
+# ── Generated output files ────────────────────────────────────────────────────
+*.xlsx
+*.csv
+*.docx
+*.pptx
+*.pdf
+*.pmuconfig
+*.pmupack
+
+# ── OS / editor ───────────────────────────────────────────────────────────────
+.DS_Store
+Thumbs.db
+.vscode/
+*.swp

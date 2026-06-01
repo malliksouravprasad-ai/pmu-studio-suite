@@ -1,0 +1,124 @@
+"""Page 1 — Upload data file."""
+import sys
+import os
+
+_APP_DIR  = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+_PMU_ROOT = os.path.dirname(os.path.dirname(_APP_DIR))
+for _p in [_PMU_ROOT, _APP_DIR]:
+    if _p not in sys.path:
+        sys.path.insert(0, _p)
+
+import pandas as pd
+import streamlit as st
+from engine import (
+    init_state, reset_state, get_workspace, get_job, set_job,
+    set_raw_df, has_data, AnalyticsStudioJob,
+)
+from shared import list_configs, load_config
+
+st.set_page_config(page_title="Upload — Analytics Studio", page_icon="📤", layout="wide")
+init_state()
+
+ws  = get_workspace()
+job = get_job()
+
+with st.sidebar:
+    st.markdown("## 📊 Analytics Studio")
+    st.caption("APP-003 · OSEPA PMU Tool Suite")
+    st.markdown("---")
+    if ws:
+        st.success(f"📁 **{ws['name']}**")
+    else:
+        st.warning("No workspace selected")
+    if job.source_filename:
+        st.info(f"📄 {job.source_filename}")
+    if st.button("🗑 Reset Studio", use_container_width=True):
+        reset_state(); st.rerun()
+
+st.markdown("# 📤 Upload")
+st.caption("Step 1 of 6 — Load your dataset")
+st.markdown("---")
+
+if ws:
+    saved = list_configs(ws["path"], "APP-003")
+    if saved:
+        with st.expander("📂 Load a saved analysis configuration", expanded=False):
+            config_names = list({c["name"] for c in saved})
+            chosen = st.selectbox("Saved configurations", config_names)
+            if st.button("Load Configuration", type="primary"):
+                data = load_config(ws["path"], "APP-003", chosen)
+                loaded_job = AnalyticsStudioJob.from_config(data["config"])
+                set_job(loaded_job)
+                st.success(f"Loaded: **{chosen}** (v{data['version']})"); st.rerun()
+
+# ── Workspace data source picker ──────────────────────────────────────────────
+if ws:
+    ws_outputs  = os.path.join(ws["path"], "outputs")
+    ws_sources  = os.path.join(ws["path"], "data_sources")
+    avail_files = []
+    for folder in [ws_outputs, ws_sources]:
+        if os.path.isdir(folder):
+            avail_files += [os.path.join(folder, f) for f in os.listdir(folder)
+                            if f.endswith((".csv", ".xlsx"))]
+    if avail_files:
+        with st.expander("📁 Use a workspace data source (output from APP-002)", expanded=False):
+            file_labels = {os.path.basename(p): p for p in avail_files}
+            sel = st.selectbox("Select file", list(file_labels.keys()), key="anl_ws_sel")
+            if st.button("Load from Workspace", type="primary", key="anl_ws_load"):
+                fpath = file_labels[sel]
+                try:
+                    df = pd.read_csv(fpath) if fpath.endswith(".csv") else pd.read_excel(fpath)
+                    job.source_filename = sel
+                    job.project_code    = ws.get("project_code", "PMU")
+                    set_job(job); set_raw_df(df)
+                    st.success(f"Loaded **{len(df):,} rows × {len(df.columns)} cols** from `{sel}`")
+                    st.rerun()
+                except Exception as e:
+                    st.error(f"Could not read: {e}")
+
+c1, c2 = st.columns([2, 1])
+with c1:
+    uploaded = st.file_uploader("Upload CSV or XLSX", type=["csv", "xlsx"])
+with c2:
+    default_code = ws["project_code"] if ws else (job.project_code or "PMU")
+    project_code = st.text_input("Project Code", value=default_code)
+
+if uploaded is None:
+    if has_data():
+        st.info(f"**{job.source_filename}** is loaded — navigate to **Aggregate** or **KPIs** to continue.")
+    else:
+        st.info("Upload a CSV or XLSX file to begin, or select a workspace data source above.")
+    st.stop()
+
+try:
+    df = pd.read_csv(uploaded) if uploaded.name.endswith(".csv") else pd.read_excel(uploaded)
+except Exception as e:
+    st.error(f"Could not read file: {e}"); st.stop()
+
+job.project_code    = project_code.strip().upper() or "PMU"
+job.source_filename = uploaded.name
+set_job(job); set_raw_df(df)
+
+st.success(f"Loaded **{len(df):,} rows × {len(df.columns)} columns** from `{uploaded.name}`")
+
+with st.expander("Preview (first 10 rows)", expanded=True):
+    st.dataframe(df.head(10), use_container_width=True)
+
+m1, m2, m3, m4 = st.columns(4)
+m1.metric("Rows", f"{len(df):,}")
+m2.metric("Columns", len(df.columns))
+m3.metric("Numeric Cols", len(df.select_dtypes(include="number").columns))
+m4.metric("Text Cols", len(df.select_dtypes(exclude="number").columns))
+
+st.markdown("### Column Summary")
+summary = pd.DataFrame({
+    "Column":   df.columns.tolist(),
+    "Type":     [str(df[c].dtype) for c in df.columns],
+    "Non-Null": [df[c].notna().sum() for c in df.columns],
+    "Null %":   [round(df[c].isna().mean() * 100, 1) for c in df.columns],
+    "Unique":   [df[c].nunique() for c in df.columns],
+})
+st.dataframe(summary, use_container_width=True, hide_index=True)
+
+st.markdown("---")
+st.success("File loaded. Navigate to **Aggregate** or **KPIs** in the sidebar to continue.")

@@ -1,0 +1,104 @@
+"""Page 1 — Upload dataset and load saved report configs."""
+import sys
+import os
+
+_APP_DIR  = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+_PMU_ROOT = os.path.dirname(os.path.dirname(_APP_DIR))
+for _p in [_PMU_ROOT, _APP_DIR]:
+    if _p not in sys.path:
+        sys.path.insert(0, _p)
+
+import pandas as pd
+import streamlit as st
+from engine import (
+    init_state, reset_state, get_workspace, get_job, set_job,
+    set_raw_df, has_data, DeliverableStudioJob,
+)
+from shared import list_configs, load_config
+
+st.set_page_config(page_title="Upload — Deliverable Studio", page_icon="📤", layout="wide")
+init_state()
+
+ws  = get_workspace()
+job = get_job()
+
+with st.sidebar:
+    st.markdown("## 📄 Deliverable Studio")
+    st.caption("APP-005 · OSEPA PMU Tool Suite")
+    st.markdown("---")
+    if ws:
+        st.success(f"📁 **{ws['name']}**")
+    else:
+        st.warning("No workspace selected")
+    if job.source_filename:
+        st.info(f"📄 {job.source_filename}")
+    if st.button("🗑 Reset Studio", use_container_width=True):
+        reset_state(); st.rerun()
+
+st.markdown("# 📤 Upload")
+st.caption("Step 1 of 3 — Load your dataset")
+st.markdown("---")
+
+if ws:
+    saved = list_configs(ws["path"], "APP-005")
+    if saved:
+        with st.expander("📂 Load a saved report configuration", expanded=False):
+            config_names = list({c["name"] for c in saved})
+            chosen = st.selectbox("Saved configurations", config_names)
+            if st.button("Load Configuration", type="primary"):
+                data = load_config(ws["path"], "APP-005", chosen)
+                set_job(DeliverableStudioJob.from_config(data["config"]))
+                st.success(f"Loaded: **{chosen}** (v{data['version']})"); st.rerun()
+
+# ── Workspace data source picker ──────────────────────────────────────────────
+if ws:
+    ws_outputs  = os.path.join(ws["path"], "outputs")
+    ws_sources  = os.path.join(ws["path"], "data_sources")
+    avail_files = []
+    for folder in [ws_outputs, ws_sources]:
+        if os.path.isdir(folder):
+            avail_files += [os.path.join(folder, f) for f in os.listdir(folder)
+                            if f.endswith((".csv", ".xlsx"))]
+    if avail_files:
+        with st.expander("📁 Use a workspace data source (from APP-003 / APP-004)", expanded=False):
+            file_labels = {os.path.basename(p): p for p in avail_files}
+            sel = st.selectbox("Select file", list(file_labels.keys()), key="del_ws_sel")
+            if st.button("Load from Workspace", type="primary", key="del_ws_load"):
+                fpath = file_labels[sel]
+                try:
+                    df_ws = pd.read_csv(fpath) if fpath.endswith(".csv") else pd.read_excel(fpath)
+                    job.source_filename = sel
+                    if ws:
+                        job.report_config.project_code = ws["project_code"]
+                    set_job(job); set_raw_df(df_ws)
+                    st.success(f"Loaded **{len(df_ws):,} rows × {len(df_ws.columns)} cols** from `{sel}`")
+                    st.rerun()
+                except Exception as e:
+                    st.error(f"Could not read: {e}")
+
+uploaded = st.file_uploader("Upload CSV or XLSX", type=["csv", "xlsx"])
+
+if uploaded is None:
+    if has_data():
+        st.info(f"**{job.source_filename}** is loaded — proceed to **Report Details**.")
+    else:
+        st.info("Upload a CSV or XLSX file, or select a workspace data source above.")
+    st.stop()
+
+try:
+    df = pd.read_csv(uploaded) if uploaded.name.endswith(".csv") else pd.read_excel(uploaded)
+except Exception as e:
+    st.error(f"Could not read file: {e}"); st.stop()
+
+job.source_filename = uploaded.name
+if ws:
+    job.report_config.project_code = ws["project_code"]
+set_job(job); set_raw_df(df)
+
+st.success(f"Loaded **{len(df):,} rows × {len(df.columns)} columns** from `{uploaded.name}`")
+with st.expander("Preview (first 10 rows)", expanded=True):
+    st.dataframe(df.head(10), use_container_width=True)
+m1, m2, m3 = st.columns(3)
+m1.metric("Rows", f"{len(df):,}"); m2.metric("Columns", len(df.columns))
+m3.metric("Numeric Cols", len(df.select_dtypes(include="number").columns))
+st.success("File loaded. Navigate to **Report Details** to continue.")
