@@ -32,12 +32,13 @@ def render_integration_sidebar() -> None:
 
 def render_integrations_page() -> None:
     st.markdown("# ⚙️ Integrations Setup")
-    st.caption("Configure Google Workspace, BigQuery, and Apps Script — all from here. No technical setup needed.")
+    st.caption("Configure all integrations from here — no coding or server access needed.")
 
-    tab_google, tab_bq, tab_appscript, tab_status = st.tabs([
+    tab_google, tab_bq, tab_appscript, tab_ai, tab_status = st.tabs([
         "🔑 Google Workspace",
         "☁️ BigQuery",
         "📜 Apps Script",
+        "🤖 AI Assistant",
         "📊 Status",
     ])
 
@@ -49,6 +50,9 @@ def render_integrations_page() -> None:
 
     with tab_appscript:
         _render_appscript_tab()
+
+    with tab_ai:
+        _render_ai_tab()
 
     with tab_status:
         _render_status_tab()
@@ -345,6 +349,77 @@ Go to [script.google.com](https://script.google.com) and click **New project**.
                 st.warning("Save your Apps Script config first.")
 
 
+# ── AI Assistant tab ─────────────────────────────────────────────────────────
+
+def _render_ai_tab():
+    from .ai_assistant import (
+        get_anthropic_key, save_anthropic_key,
+        get_ai_password, save_ai_password,
+        ai_available, ai_password_set,
+    )
+
+    st.markdown("### AI Assistant Configuration")
+    st.markdown("Configure the Claude-powered AI assistant. Set an API key (admin only) and a team access password.")
+
+    # Current status
+    is_ready = ai_available() and ai_password_set()
+    if is_ready:
+        st.success("✅ AI Assistant is active. Users can access it with the configured password.")
+    else:
+        st.warning("⚠️ AI Assistant is not fully configured yet.")
+
+    st.markdown("---")
+
+    # API Key section
+    st.markdown("#### Anthropic API Key")
+    st.caption("Get your key at console.anthropic.com → API Keys. Never share this — it stays hidden from users.")
+
+    current_key = get_anthropic_key()
+    key_display = f"`sk-ant-...{current_key[-6:]}`" if current_key else "Not configured"
+    st.caption(f"Current key: {key_display}")
+
+    with st.form("ai_key_form"):
+        new_key = st.text_input("New API Key", type="password", placeholder="sk-ant-api03-...")
+        if st.form_submit_button("💾 Update API Key", type="primary"):
+            if not new_key.strip():
+                st.error("Key cannot be empty.")
+            elif not new_key.strip().startswith("sk-ant-"):
+                st.error("Not a valid Anthropic API key. It must start with 'sk-ant-'.")
+            else:
+                save_anthropic_key(new_key.strip())
+                st.success("✅ API key updated.")
+                st.rerun()
+
+    st.markdown("---")
+
+    # Password section
+    st.markdown("#### Team Access Password")
+    st.caption("This is what your team enters to use the AI Assistant. Share it with your PMU team.")
+
+    current_pw = get_ai_password()
+    if current_pw:
+        st.caption(f"Password is set ({len(current_pw)} characters).")
+    else:
+        st.caption("No password set yet.")
+
+    with st.form("ai_pw_form"):
+        pw1 = st.text_input("New Access Password", type="password", placeholder="e.g. PMU@2026")
+        pw2 = st.text_input("Confirm Password",    type="password")
+        if st.form_submit_button("💾 Update Password", type="primary"):
+            if not pw1.strip():
+                st.error("Password cannot be empty.")
+            elif pw1 != pw2:
+                st.error("Passwords do not match.")
+            elif len(pw1.strip()) < 4:
+                st.error("Password must be at least 4 characters.")
+            else:
+                save_ai_password(pw1.strip())
+                st.success("✅ Access password updated. Share the new password with your team.")
+                st.rerun()
+
+    st.info("**Security:** The API key is stored on the server and never shown to users. Users only enter the access password, which grants them a session-level token to use the assistant.")
+
+
 # ── Status tab ────────────────────────────────────────────────────────────────
 
 def _render_status_tab():
@@ -390,6 +465,19 @@ def _render_status_tab():
         st.caption(f"URL: {summary['apps_script']['url'][:60]}...")
     elif not as_ok:
         st.caption("Not configured — go to Apps Script tab to set up.")
+
+    st.markdown("---")
+
+    # AI Assistant
+    from .ai_assistant import ai_available, ai_password_set
+    ai_ok = ai_available() and ai_password_set()
+    st.markdown(f"{'✅' if ai_ok else '🔴'} **AI Assistant**")
+    if ai_ok:
+        st.caption("Active — team can access with the configured password.")
+    elif ai_available() and not ai_password_set():
+        st.caption("API key set but no access password — go to AI Assistant tab.")
+    else:
+        st.caption("Not configured — go to AI Assistant tab to set up.")
 
     st.markdown("---")
     st.markdown("### Quick Test")
