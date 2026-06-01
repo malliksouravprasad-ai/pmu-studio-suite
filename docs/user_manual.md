@@ -1,6 +1,23 @@
 # PMU Studio Suite — User Manual
 
-**Version:** 1.0 | **Date:** June 2026 | **Suite:** OSEPA PMU Tool Suite
+**Version:** 1.1 | **Date:** June 2026 | **Suite:** OSEPA PMU Tool Suite
+
+---
+
+## Live Application URLs (UAT)
+
+Use these links to access the live applications hosted on Google Cloud Run for User Acceptance Testing:
+
+| App | Name | UAT URL |
+|-----|------|---------|
+| APP-001 | Monitoring Builder | https://pmu-001-monitoring-builder-4jlqk7zuya-el.a.run.app |
+| APP-002 | Data Processing Studio | https://pmu-002-data-processing-studio-4jlqk7zuya-el.a.run.app |
+| APP-003 | Analytics Studio | https://pmu-003-analytics-studio-4jlqk7zuya-el.a.run.app |
+| APP-004 | Dashboard Studio | https://pmu-004-dashboard-studio-4jlqk7zuya-el.a.run.app |
+| APP-005 | Deliverable Studio | https://pmu-005-deliverable-studio-4jlqk7zuya-el.a.run.app |
+| APP-006 | Workflow Builder | https://pmu-006-workflow-builder-4jlqk7zuya-el.a.run.app |
+
+> **Before starting UAT:** Enter your name in the **Your Name / User Tag** field on each app's Workspace page. This keeps your workspaces separate from other testers.
 
 ---
 
