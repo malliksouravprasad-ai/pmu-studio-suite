@@ -32,6 +32,9 @@ COPY apps/APP-006_Workflow_Builder/     ./apps/APP-006_Workflow_Builder/
 # Report templates
 COPY templates/ ./templates/
 
+# Streamlit secrets — credentials for Google, BigQuery, Apps Script
+COPY .streamlit/ ./.streamlit/
+
 # Runtime directories — ephemeral within the container's lifetime
 RUN mkdir -p workspaces outputs inputs
 
