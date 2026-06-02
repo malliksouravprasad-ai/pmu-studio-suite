@@ -1,4 +1,4 @@
-﻿"""APP-006 Workflow Builder â€” entry point."""
+"""APP-006 Workflow Builder â€” entry point."""
 import sys
 import os
 

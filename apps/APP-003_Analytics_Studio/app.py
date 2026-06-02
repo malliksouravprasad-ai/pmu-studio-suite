@@ -1,4 +1,4 @@
-﻿"""APP-003 Analytics Studio â€” entry point."""
+"""APP-003 Analytics Studio â€” entry point."""
 import sys
 import os
 

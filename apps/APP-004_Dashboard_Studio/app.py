@@ -1,4 +1,4 @@
-﻿"""APP-004 Dashboard Studio â€” entry point."""
+"""APP-004 Dashboard Studio â€” entry point."""
 import sys
 import os
 

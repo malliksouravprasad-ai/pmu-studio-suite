@@ -1,4 +1,4 @@
-﻿"""APP-002 Data Processing Studio â€” entry point."""
+"""APP-002 Data Processing Studio â€” entry point."""
 import sys
 import os
 

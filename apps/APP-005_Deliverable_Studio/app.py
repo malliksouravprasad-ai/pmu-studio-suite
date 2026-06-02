@@ -1,4 +1,4 @@
-﻿"""APP-005 Deliverable Studio â€” entry point."""
+"""APP-005 Deliverable Studio â€” entry point."""
 import sys
 import os
 

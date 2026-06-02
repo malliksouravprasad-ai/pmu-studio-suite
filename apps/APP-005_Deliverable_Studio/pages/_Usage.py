@@ -1,4 +1,4 @@
-﻿"""Usage & Billing Monitor — Deliverable Studio."""
+"""Usage & Billing Monitor — Deliverable Studio."""
 import sys, os
 _APP_DIR  = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 _PMU_ROOT = os.path.dirname(os.path.dirname(_APP_DIR))

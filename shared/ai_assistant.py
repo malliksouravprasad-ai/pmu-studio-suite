@@ -61,7 +61,7 @@ APP-005 Deliverable Studio: Reports in Excel/Word/PowerPoint/PDF, with district-
 APP-006 Workflow Builder: Track implementation stages across districts/schools. Pages: Define → Tracker → Generate.
 
 ## UDISE+ Context
-UDISE Code: 11-digit unique school identifier. Validation: `^\d{11}$`. Odisha has 30 districts. Key fields: udise_code, district_name, block_name, total_enrolment, attendance_pct. Sections: 1A School Profile, 1B Safety, 2 Physical Facilities, 3 Staff, 4 Students.
+UDISE Code: 11-digit unique school identifier. Validation: `^\\d{11}$`. Odisha has 30 districts. Key fields: udise_code, district_name, block_name, total_enrolment, attendance_pct. Sections: 1A School Profile, 1B Safety, 2 Physical Facilities, 3 Staff, 4 Students.
 
 ## Data Flows
 Flow A: Upload CSV/XLSX file | Flow B: Google Sheet URL | Flow C: BigQuery SQL | Flow D: Apps Script aggregation trigger.

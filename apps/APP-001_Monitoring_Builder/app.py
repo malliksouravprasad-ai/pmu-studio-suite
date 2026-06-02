@@ -1,4 +1,4 @@
-﻿"""APP-001 Monitoring Builder â€” entry point."""
+"""APP-001 Monitoring Builder â€” entry point."""
 import sys
 import os
 
