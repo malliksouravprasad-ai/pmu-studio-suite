@@ -1,6 +1,8 @@
 # PMU Studio Suite — User Manual
 
-**Version:** 2.0 | **Date:** June 2026 | **Suite:** OSEPA PMU Tool Suite
+**Version:** 3.0 | **Date:** June 2026 | **Suite:** OSEPA PMU Tool Suite
+
+> **v3.0 changes:** Enterprise UI overhaul (dark navy sidebar, Inter font, card-based layout); AI Assistant with password protection; Usage & Billing Monitor; UTF-8 crash fix; regex escape fix across all 6 apps.
 
 ---
 
@@ -16,6 +18,35 @@
 | APP-006 | Workflow Builder | https://pmu-006-workflow-builder-4jlqk7zuya-el.a.run.app |
 
 > **Before starting:** Enter your name in the **Your Name / User Tag** field on each app's Workspace page. This isolates your workspaces from other users.
+
+---
+
+---
+
+## What's New in Version 3.0
+
+### Enterprise UI
+- **Dark navy sidebar** with emerald accent navigation — matches Power BI / Notion Enterprise aesthetic
+- **Inter font** loaded from Google Fonts — sharper, more professional typography
+- **Card-based layout** — every metric, section, and panel is in a white card with subtle shadow
+- **Page header banners** — dark gradient header with icon, title, subtitle, and step indicator on every page
+- **Step progress bar** — shows current step within each workflow (Step 2 of 6 etc.)
+- All 6 apps updated simultaneously; new pages automatically inherit the theme
+
+### AI Assistant
+Every app now has an **AI Assistant** page (bottom of the sidebar navigation).
+- Answers questions about PMU workflows, field definitions, KPI formulas, UDISE+ codes
+- Can guide you through building a monitoring framework, cleaning data, or generating reports
+- **Requires a password** — ask your system administrator for the access password
+- Powered by Claude (Anthropic API); usage is tracked on the Usage Monitor page
+
+### Usage & Billing Monitor
+Every app has a **Usage Monitor** page (bottom of the sidebar navigation).
+- Shows total requests made this month vs the 2 million free-tier limit
+- Turns amber at 80% usage, red when billing begins
+- Shows estimated extra charge in USD if the free tier is exceeded
+- Historical usage chart across months
+- Links to GCP Billing console and budget alert setup
 
 ---
 
@@ -860,6 +891,44 @@ district_reports.zip
 
 ---
 
+---
+
+# AI Assistant — Quick Reference
+
+## How to Access
+Go to any app → **AI Assistant** (bottom of sidebar navigation).
+
+## First Use (Admin)
+1. Go to any app → **Integrations** page → **AI Assistant** tab.
+2. Enter your Anthropic API key (`sk-ant-...`).
+3. Set a team password — users will need this to access the assistant.
+4. Click **Save**.
+
+## Using the Assistant
+1. When prompted, enter the team access password.
+2. Type your question or request in the chat box.
+3. Press **Enter** or click **Send**.
+
+## What It Can Do
+
+| Ask About | Example |
+|-----------|---------|
+| UDISE+ fields | "What is the UDISE code format?" |
+| KPI definitions | "How do I calculate attendance rate?" |
+| App navigation | "Which page do I use to rank districts?" |
+| Data validation | "Why is my district name showing as unmatched?" |
+| Workflow guidance | "How do I generate a Google Form from my schema?" |
+| Report generation | "Can it split reports by district?" |
+
+## Usage Limits
+- Each message counts as one request toward the Cloud Run monthly free tier.
+- View current usage on the **Usage Monitor** page.
+- The AI does not store your data — each session is independent.
+
+---
+
+---
+
 # Integration Setup Guide
 
 This section covers the one-time setup required to enable Flow B (Google Sheets/Forms), Flow C (BigQuery), and Flow D (Apps Script).
@@ -991,4 +1060,20 @@ Outputs can be pushed back via:
 
 ---
 
-*PMU Studio Suite — OSEPA | Version 2.0 | June 2026*
+---
+
+## Troubleshooting
+
+| Symptom | Cause | Fix |
+|---------|-------|-----|
+| App shows blank page on first load | Docker container cold start | Wait 10–15 seconds and refresh |
+| "No workspace selected" warning | Workspace not created yet | Go to Workspace page, create one |
+| Google Sheet fails to load | Service account not shared | Share the sheet with the service account email |
+| BigQuery shows "Not Connected" | Credentials not configured | Go to Integrations → paste JSON credentials |
+| AI Assistant says "password required" | Correct — feature is protected | Ask admin for team access password |
+| File upload fails for large files | Streamlit 200 MB limit | Split into smaller files or use BigQuery flow |
+| Charts don't appear in Excel output | Column type mismatch | Ensure numeric columns contain numbers, not text |
+
+---
+
+*PMU Studio Suite — OSEPA | Version 3.0 | June 2026*
